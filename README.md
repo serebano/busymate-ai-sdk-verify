@@ -1,4 +1,4 @@
-# Busymate AI verify — 0.1.0
+# Busymate AI verify — 0.1.1
 
 Official customer-side verification of the Busymate AI **connector actor token** (`bmai.actor/3`, contract `bmai-identity` 2.0.0), plus a CLI that checks your whole identity integration from a clean machine.
 
@@ -13,16 +13,14 @@ When a signed-in customer asks your assistant for something only your account to
 
 The token format and the vectors are owned by the identity contract in the private product repository. This repository vendors the vectors (`scripts/sync-vectors.mjs`) and CI fails when they diverge. See [`docs/token-v3.md`](docs/token-v3.md).
 
-## Install from the GitHub release
-
-The packages are on npm once the `@busymate` scope is published; until then install the packed tarballs attached to the [0.1.0 release](https://github.com/serebano/busymate-ai-sdk-verify/releases/tag/0.1.0):
+## Install
 
 ```sh
-npm install https://github.com/serebano/busymate-ai-sdk-verify/releases/download/0.1.0/busymate-ai-verify-0.1.0.tgz
-npx https://github.com/serebano/busymate-ai-sdk-verify/releases/download/0.1.0/busymate-identity-check-0.1.0.tgz --help
+npm install @busymate/ai-verify
+npx @busymate/identity-check --help
 ```
 
-Python, PHP and Go: copy the file from `busymate-ai-verify-snippets-0.1.0.tgz` (or this repo) into your project.
+The same tarballs are attached to each [GitHub release](https://github.com/serebano/busymate-ai-sdk-verify/releases) with `SHA256SUMS` (for example `npm install https://github.com/serebano/busymate-ai-sdk-verify/releases/download/0.1.1/busymate-ai-verify-0.1.1.tgz`). Python, PHP and Go: copy the file from `busymate-ai-verify-snippets-<version>.tgz` (or this repo) into your project.
 
 ## Verify in your MCP server (Node / Deno)
 
@@ -79,7 +77,7 @@ All five implementations follow the same check order and return the same reason 
 ## identity-check
 
 ```sh
-npx https://github.com/serebano/busymate-ai-sdk-verify/releases/download/0.1.0/busymate-identity-check-0.1.0.tgz \
+npx @busymate/identity-check \
   --issuer https://api.acme.com --mint https://api.acme.com/api/bmai/identity \
   --login-url https://acme.com/login --chat-origin https://assistant.acme.com \
   --mcp https://mcp.acme.com --probe-url https://mcp.acme.com/mcp --tenant-id acme
@@ -101,6 +99,6 @@ node scripts/gen-vectors.mjs                           # regenerate the local ve
 node scripts/sync-vectors.mjs --check
 ```
 
-Releases: push a tag equal to the package version after `sdk-check` is green on `main`. `release.yml` creates the GitHub release with tarballs and `SHA256SUMS`, and publishes to npm only when the `NPM_TOKEN` secret exists.
+Releases: push a tag equal to the package version after `sdk-check` is green on `main`. `release.yml` creates the GitHub release with tarballs and `SHA256SUMS`, then publishes both packages to npm with provenance.
 
 Status: pre-1.0. The token format is fixed by the contract; the package API may still change in 0.x.
