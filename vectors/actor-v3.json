@@ -1,0 +1,757 @@
+{
+  "contract": "bmai-identity",
+  "contract_version": "2.0.0",
+  "token_format": "bmai.actor/3",
+  "vector_set": "busymate-ai-sdk-verify/local-1",
+  "source": "local",
+  "now": 1793000000,
+  "issuer": "https://busymate.ai",
+  "skew_seconds": 10,
+  "max_lifetime_seconds": 120,
+  "config": {
+    "audience": "https://mcp.example.test",
+    "tenant_id": "acme",
+    "connector_id": "conn_acme_1",
+    "idp": "idp_acme"
+  },
+  "jwks": {
+    "keys": [
+      {
+        "kty": "EC",
+        "x": "OfsGdeuOm02cXEGi39FCVFxLzBvfeCJ6GOD_0GRtz6g",
+        "y": "WgPOp9NRTFB6TFwhOKjqvyR93Y58tf_55cXg678JKUo",
+        "crv": "P-256",
+        "kid": "test-1",
+        "alg": "ES256",
+        "use": "sig"
+      },
+      {
+        "kty": "EC",
+        "x": "BjvDSc9A1cYqgZUPpoUFArdvNJCAfjjEn_LBVOHw2HM",
+        "y": "invSZL1ksG7C3Zgdp4JVx-A8lENtcJr_FqUNPaFzuLU",
+        "crv": "P-256",
+        "kid": "test-2",
+        "alg": "ES256",
+        "use": "sig"
+      }
+    ]
+  },
+  "reasons": [
+    "missing_token",
+    "malformed",
+    "bad_alg",
+    "bad_typ",
+    "unknown_kid",
+    "bad_signature",
+    "bad_issuer",
+    "bad_audience",
+    "missing_claim",
+    "expired",
+    "not_yet_valid",
+    "lifetime_too_long",
+    "tenant_mismatch",
+    "connector_mismatch",
+    "idp_mismatch",
+    "not_identified",
+    "tool_mismatch",
+    "replay",
+    "jwks_unavailable",
+    "confirmation_required"
+  ],
+  "cases": [
+    {
+      "name": "valid_x_header",
+      "description": "Token in X-Bmai-Actor",
+      "options": {},
+      "calls": [
+        {
+          "headers": {
+            "X-Bmai-Actor": "eyJhbGciOiJFUzI1NiIsInR5cCI6ImJtYWktYWN0b3Irand0Iiwia2lkIjoidGVzdC0xIn0.eyJpc3MiOiJodHRwczovL2J1c3ltYXRlLmFpIiwiYXVkIjoiaHR0cHM6Ly9tY3AuZXhhbXBsZS50ZXN0Iiwic3ViIjoidXNlcl8xMjMiLCJpZHAiOiJpZHBfYWNtZSIsInRlbmFudF9pZCI6ImFjbWUiLCJjb25uZWN0b3JfaWQiOiJjb25uX2FjbWVfMSIsInN1cHBvcnRfc2Vzc2lvbl9pZCI6InNzXzEiLCJhY3Rvcl9raW5kIjoiaWRlbnRpZmllZCIsImNvbmZpcm1lZCI6ZmFsc2UsInRvb2wiOiJnZXRfd2FsbGV0X2JhbGFuY2UiLCJpYXQiOjE3OTI5OTk5OTAsIm5iZiI6MTc5Mjk5OTk5MCwiZXhwIjoxNzkzMDAwMTAwLCJqdGkiOiJqdGktMSJ9.WyotmfynjY5YWhl2lunUFCJV2nOkM96FcR41tM81mO-Llgjp8OlPZZjjH9VvblFDUwDSgTTl8V346XdrFGUQQA"
+          },
+          "expect": {
+            "ok": true,
+            "actor": {
+              "sub": "user_123",
+              "idp": "idp_acme",
+              "confirmed": false,
+              "tool": "get_wallet_balance",
+              "jti": "jti-1",
+              "supportSessionId": "ss_1"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "valid_bearer_typ",
+      "description": "Token in Authorization: Bearer with header typ bmai-actor+jwt",
+      "options": {},
+      "calls": [
+        {
+          "headers": {
+            "Authorization": "Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6ImJtYWktYWN0b3Irand0Iiwia2lkIjoidGVzdC0xIn0.eyJpc3MiOiJodHRwczovL2J1c3ltYXRlLmFpIiwiYXVkIjoiaHR0cHM6Ly9tY3AuZXhhbXBsZS50ZXN0Iiwic3ViIjoidXNlcl8xMjMiLCJpZHAiOiJpZHBfYWNtZSIsInRlbmFudF9pZCI6ImFjbWUiLCJjb25uZWN0b3JfaWQiOiJjb25uX2FjbWVfMSIsInN1cHBvcnRfc2Vzc2lvbl9pZCI6InNzXzEiLCJhY3Rvcl9raW5kIjoiaWRlbnRpZmllZCIsImNvbmZpcm1lZCI6ZmFsc2UsInRvb2wiOiJnZXRfd2FsbGV0X2JhbGFuY2UiLCJpYXQiOjE3OTI5OTk5OTAsIm5iZiI6MTc5Mjk5OTk5MCwiZXhwIjoxNzkzMDAwMTAwLCJqdGkiOiJqdGktMiJ9.aJgwFlb19fMGiI6lxahaRgsYBnAQksQ7CtVJoQOutagBDoJaUQYxGXiztI0j3dzTV5AklhhIjIHf2kub7kXQDQ"
+          },
+          "expect": {
+            "ok": true,
+            "actor": {
+              "sub": "user_123",
+              "idp": "idp_acme",
+              "confirmed": false,
+              "tool": "get_wallet_balance",
+              "jti": "jti-2",
+              "supportSessionId": "ss_1"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "valid_confirmed",
+      "description": "confirmed:true is passed through",
+      "options": {},
+      "calls": [
+        {
+          "headers": {
+            "X-Bmai-Actor": "eyJhbGciOiJFUzI1NiIsInR5cCI6ImJtYWktYWN0b3Irand0Iiwia2lkIjoidGVzdC0xIn0.eyJpc3MiOiJodHRwczovL2J1c3ltYXRlLmFpIiwiYXVkIjoiaHR0cHM6Ly9tY3AuZXhhbXBsZS50ZXN0Iiwic3ViIjoidXNlcl8xMjMiLCJpZHAiOiJpZHBfYWNtZSIsInRlbmFudF9pZCI6ImFjbWUiLCJjb25uZWN0b3JfaWQiOiJjb25uX2FjbWVfMSIsInN1cHBvcnRfc2Vzc2lvbl9pZCI6InNzXzEiLCJhY3Rvcl9raW5kIjoiaWRlbnRpZmllZCIsImNvbmZpcm1lZCI6dHJ1ZSwidG9vbCI6ImdldF93YWxsZXRfYmFsYW5jZSIsImlhdCI6MTc5Mjk5OTk5MCwibmJmIjoxNzkyOTk5OTkwLCJleHAiOjE3OTMwMDAxMDAsImp0aSI6Imp0aS0zIn0.cT7qaVu2FeswkM1PxaH5KO4qBgNmIJMFf5P0KQ7pFg6UAn1IrJkZw6CUQIXVti2TgTTUrgOSmaIpBJFBchAbdA"
+          },
+          "expect": {
+            "ok": true,
+            "actor": {
+              "sub": "user_123",
+              "idp": "idp_acme",
+              "confirmed": true,
+              "tool": "get_wallet_balance",
+              "jti": "jti-3",
+              "supportSessionId": "ss_1"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "valid_second_key",
+      "description": "Second JWKS key selected by kid",
+      "options": {},
+      "calls": [
+        {
+          "headers": {
+            "X-Bmai-Actor": "eyJhbGciOiJFUzI1NiIsInR5cCI6ImJtYWktYWN0b3Irand0Iiwia2lkIjoidGVzdC0yIn0.eyJpc3MiOiJodHRwczovL2J1c3ltYXRlLmFpIiwiYXVkIjoiaHR0cHM6Ly9tY3AuZXhhbXBsZS50ZXN0Iiwic3ViIjoidXNlcl8xMjMiLCJpZHAiOiJpZHBfYWNtZSIsInRlbmFudF9pZCI6ImFjbWUiLCJjb25uZWN0b3JfaWQiOiJjb25uX2FjbWVfMSIsInN1cHBvcnRfc2Vzc2lvbl9pZCI6InNzXzEiLCJhY3Rvcl9raW5kIjoiaWRlbnRpZmllZCIsImNvbmZpcm1lZCI6ZmFsc2UsInRvb2wiOiJnZXRfd2FsbGV0X2JhbGFuY2UiLCJpYXQiOjE3OTI5OTk5OTAsIm5iZiI6MTc5Mjk5OTk5MCwiZXhwIjoxNzkzMDAwMTAwLCJqdGkiOiJqdGktNCJ9.38aImygzKC5QJB2HCnclcbx0yDvZQbphG69H9a0tgEK8FZscix2YPDi2m2M-J2V56VpmLrpv3pbmJMx860o-_Q"
+          },
+          "expect": {
+            "ok": true,
+            "actor": {
+              "sub": "user_123",
+              "idp": "idp_acme",
+              "confirmed": false,
+              "tool": "get_wallet_balance",
+              "jti": "jti-4",
+              "supportSessionId": "ss_1"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "valid_tool_matches",
+      "description": "Optional tool check passes when equal",
+      "options": {
+        "tool": "create_delivery"
+      },
+      "calls": [
+        {
+          "headers": {
+            "X-Bmai-Actor": "eyJhbGciOiJFUzI1NiIsInR5cCI6ImJtYWktYWN0b3Irand0Iiwia2lkIjoidGVzdC0xIn0.eyJpc3MiOiJodHRwczovL2J1c3ltYXRlLmFpIiwiYXVkIjoiaHR0cHM6Ly9tY3AuZXhhbXBsZS50ZXN0Iiwic3ViIjoidXNlcl8xMjMiLCJpZHAiOiJpZHBfYWNtZSIsInRlbmFudF9pZCI6ImFjbWUiLCJjb25uZWN0b3JfaWQiOiJjb25uX2FjbWVfMSIsInN1cHBvcnRfc2Vzc2lvbl9pZCI6InNzXzEiLCJhY3Rvcl9raW5kIjoiaWRlbnRpZmllZCIsImNvbmZpcm1lZCI6ZmFsc2UsInRvb2wiOiJjcmVhdGVfZGVsaXZlcnkiLCJpYXQiOjE3OTI5OTk5OTAsIm5iZiI6MTc5Mjk5OTk5MCwiZXhwIjoxNzkzMDAwMTAwLCJqdGkiOiJqdGktNSJ9.k7Qr2YRBBODEJxCNauS8rfUZpXYZm2JlHqUrLurFq8WlSXHPMl1YaDSEzvkmoc2e-WWg656Kl2PC1xCQ5sjS7A"
+          },
+          "expect": {
+            "ok": true,
+            "actor": {
+              "sub": "user_123",
+              "idp": "idp_acme",
+              "confirmed": false,
+              "tool": "create_delivery",
+              "jti": "jti-5",
+              "supportSessionId": "ss_1"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "valid_idp_not_configured",
+      "description": "idp is optional on the verifier",
+      "options": {
+        "idp": null
+      },
+      "calls": [
+        {
+          "headers": {
+            "X-Bmai-Actor": "eyJhbGciOiJFUzI1NiIsInR5cCI6ImJtYWktYWN0b3Irand0Iiwia2lkIjoidGVzdC0xIn0.eyJpc3MiOiJodHRwczovL2J1c3ltYXRlLmFpIiwiYXVkIjoiaHR0cHM6Ly9tY3AuZXhhbXBsZS50ZXN0Iiwic3ViIjoidXNlcl8xMjMiLCJpZHAiOiJpZHBfb3RoZXIiLCJ0ZW5hbnRfaWQiOiJhY21lIiwiY29ubmVjdG9yX2lkIjoiY29ubl9hY21lXzEiLCJzdXBwb3J0X3Nlc3Npb25faWQiOiJzc18xIiwiYWN0b3Jfa2luZCI6ImlkZW50aWZpZWQiLCJjb25maXJtZWQiOmZhbHNlLCJ0b29sIjoiZ2V0X3dhbGxldF9iYWxhbmNlIiwiaWF0IjoxNzkyOTk5OTkwLCJuYmYiOjE3OTI5OTk5OTAsImV4cCI6MTc5MzAwMDEwMCwianRpIjoianRpLTYifQ.dHXFhGlAHPAVyqKinu-mfBzr-l7N8ti0pw_FlQy4Fus-Ag-M8srQrl0eZV-Dnn2OdNM87RTG6vik7fK8swBDzQ"
+          },
+          "expect": {
+            "ok": true,
+            "actor": {
+              "sub": "user_123",
+              "idp": "idp_other",
+              "confirmed": false,
+              "tool": "get_wallet_balance",
+              "jti": "jti-6",
+              "supportSessionId": "ss_1"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "valid_lifetime_120",
+      "description": "exp-iat of exactly 120 s is allowed",
+      "options": {},
+      "calls": [
+        {
+          "headers": {
+            "X-Bmai-Actor": "eyJhbGciOiJFUzI1NiIsInR5cCI6ImJtYWktYWN0b3Irand0Iiwia2lkIjoidGVzdC0xIn0.eyJpc3MiOiJodHRwczovL2J1c3ltYXRlLmFpIiwiYXVkIjoiaHR0cHM6Ly9tY3AuZXhhbXBsZS50ZXN0Iiwic3ViIjoidXNlcl8xMjMiLCJpZHAiOiJpZHBfYWNtZSIsInRlbmFudF9pZCI6ImFjbWUiLCJjb25uZWN0b3JfaWQiOiJjb25uX2FjbWVfMSIsInN1cHBvcnRfc2Vzc2lvbl9pZCI6InNzXzEiLCJhY3Rvcl9raW5kIjoiaWRlbnRpZmllZCIsImNvbmZpcm1lZCI6ZmFsc2UsInRvb2wiOiJnZXRfd2FsbGV0X2JhbGFuY2UiLCJpYXQiOjE3OTI5OTk5ODAsIm5iZiI6MTc5Mjk5OTk4MCwiZXhwIjoxNzkzMDAwMTAwLCJqdGkiOiJqdGktNyJ9.xY5RqM_nbEz-p5UpfVJwQ-qyAGZHsakaq9nQep2tv5hhrqLkhvUPwrb6bBPpJ6vbGCL8Fxa9eWjs0Cum0w4U-g"
+          },
+          "expect": {
+            "ok": true,
+            "actor": {
+              "sub": "user_123",
+              "idp": "idp_acme",
+              "confirmed": false,
+              "tool": "get_wallet_balance",
+              "jti": "jti-7",
+              "supportSessionId": "ss_1"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "valid_expired_within_skew",
+      "description": "Expired by 5 s is inside the 10 s skew",
+      "options": {},
+      "calls": [
+        {
+          "headers": {
+            "X-Bmai-Actor": "eyJhbGciOiJFUzI1NiIsInR5cCI6ImJtYWktYWN0b3Irand0Iiwia2lkIjoidGVzdC0xIn0.eyJpc3MiOiJodHRwczovL2J1c3ltYXRlLmFpIiwiYXVkIjoiaHR0cHM6Ly9tY3AuZXhhbXBsZS50ZXN0Iiwic3ViIjoidXNlcl8xMjMiLCJpZHAiOiJpZHBfYWNtZSIsInRlbmFudF9pZCI6ImFjbWUiLCJjb25uZWN0b3JfaWQiOiJjb25uX2FjbWVfMSIsInN1cHBvcnRfc2Vzc2lvbl9pZCI6InNzXzEiLCJhY3Rvcl9raW5kIjoiaWRlbnRpZmllZCIsImNvbmZpcm1lZCI6ZmFsc2UsInRvb2wiOiJnZXRfd2FsbGV0X2JhbGFuY2UiLCJpYXQiOjE3OTI5OTk5NDAsIm5iZiI6MTc5Mjk5OTk0MCwiZXhwIjoxNzkyOTk5OTk1LCJqdGkiOiJqdGktOCJ9.550XdfqlMU5C0hMEIlBVnHqmN96E8hZbunlctelUgSgOb_8yKaOzlBxDj7Ra1OuSVpjHDzGHPvcsVQCJAZIZzA"
+          },
+          "expect": {
+            "ok": true,
+            "actor": {
+              "sub": "user_123",
+              "idp": "idp_acme",
+              "confirmed": false,
+              "tool": "get_wallet_balance",
+              "jti": "jti-8",
+              "supportSessionId": "ss_1"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "valid_nbf_within_skew",
+      "description": "nbf 5 s in the future is inside the 10 s skew",
+      "options": {},
+      "calls": [
+        {
+          "headers": {
+            "X-Bmai-Actor": "eyJhbGciOiJFUzI1NiIsInR5cCI6ImJtYWktYWN0b3Irand0Iiwia2lkIjoidGVzdC0xIn0.eyJpc3MiOiJodHRwczovL2J1c3ltYXRlLmFpIiwiYXVkIjoiaHR0cHM6Ly9tY3AuZXhhbXBsZS50ZXN0Iiwic3ViIjoidXNlcl8xMjMiLCJpZHAiOiJpZHBfYWNtZSIsInRlbmFudF9pZCI6ImFjbWUiLCJjb25uZWN0b3JfaWQiOiJjb25uX2FjbWVfMSIsInN1cHBvcnRfc2Vzc2lvbl9pZCI6InNzXzEiLCJhY3Rvcl9raW5kIjoiaWRlbnRpZmllZCIsImNvbmZpcm1lZCI6ZmFsc2UsInRvb2wiOiJnZXRfd2FsbGV0X2JhbGFuY2UiLCJpYXQiOjE3OTI5OTk5OTUsIm5iZiI6MTc5MzAwMDAwNSwiZXhwIjoxNzkzMDAwMTAwLCJqdGkiOiJqdGktOSJ9.Kvgi5j1M6um--XNpRPHYb8AJLrIZ2fTJbWx0zt-4RQsRSJ-bZk-Sy-ND6Lq4f_y86_DWupJ48QsXXMZ1BwL6sA"
+          },
+          "expect": {
+            "ok": true,
+            "actor": {
+              "sub": "user_123",
+              "idp": "idp_acme",
+              "confirmed": false,
+              "tool": "get_wallet_balance",
+              "jti": "jti-9",
+              "supportSessionId": "ss_1"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "missing_token",
+      "description": "No header at all",
+      "options": {},
+      "calls": [
+        {
+          "headers": {},
+          "expect": {
+            "ok": false,
+            "reason": "missing_token"
+          }
+        }
+      ]
+    },
+    {
+      "name": "bearer_not_actor_typ",
+      "description": "Authorization Bearer whose typ is JWT is not an actor token",
+      "options": {},
+      "calls": [
+        {
+          "headers": {
+            "Authorization": "Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3QtMSJ9.eyJpc3MiOiJodHRwczovL2J1c3ltYXRlLmFpIiwiYXVkIjoiaHR0cHM6Ly9tY3AuZXhhbXBsZS50ZXN0Iiwic3ViIjoidXNlcl8xMjMiLCJpZHAiOiJpZHBfYWNtZSIsInRlbmFudF9pZCI6ImFjbWUiLCJjb25uZWN0b3JfaWQiOiJjb25uX2FjbWVfMSIsInN1cHBvcnRfc2Vzc2lvbl9pZCI6InNzXzEiLCJhY3Rvcl9raW5kIjoiaWRlbnRpZmllZCIsImNvbmZpcm1lZCI6ZmFsc2UsInRvb2wiOiJnZXRfd2FsbGV0X2JhbGFuY2UiLCJpYXQiOjE3OTI5OTk5OTAsIm5iZiI6MTc5Mjk5OTk5MCwiZXhwIjoxNzkzMDAwMTAwLCJqdGkiOiJqdGktMTAifQ.gTpGLElPDxcpWGZZ0f0jp6T6t0hTItX5GlFjzY_om_SkpncCRIqGA151WGTXmQeCLIiBcmFalGBBnA0UYLNlfw"
+          },
+          "expect": {
+            "ok": false,
+            "reason": "missing_token"
+          }
+        }
+      ]
+    },
+    {
+      "name": "bearer_opaque",
+      "description": "Authorization Bearer with an opaque (API key) value",
+      "options": {},
+      "calls": [
+        {
+          "headers": {
+            "Authorization": "Bearer sk_live_abc123"
+          },
+          "expect": {
+            "ok": false,
+            "reason": "missing_token"
+          }
+        }
+      ]
+    },
+    {
+      "name": "x_header_wrong_typ",
+      "description": "X-Bmai-Actor token with typ JWT",
+      "options": {},
+      "calls": [
+        {
+          "headers": {
+            "X-Bmai-Actor": "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3QtMSJ9.eyJpc3MiOiJodHRwczovL2J1c3ltYXRlLmFpIiwiYXVkIjoiaHR0cHM6Ly9tY3AuZXhhbXBsZS50ZXN0Iiwic3ViIjoidXNlcl8xMjMiLCJpZHAiOiJpZHBfYWNtZSIsInRlbmFudF9pZCI6ImFjbWUiLCJjb25uZWN0b3JfaWQiOiJjb25uX2FjbWVfMSIsInN1cHBvcnRfc2Vzc2lvbl9pZCI6InNzXzEiLCJhY3Rvcl9raW5kIjoiaWRlbnRpZmllZCIsImNvbmZpcm1lZCI6ZmFsc2UsInRvb2wiOiJnZXRfd2FsbGV0X2JhbGFuY2UiLCJpYXQiOjE3OTI5OTk5OTAsIm5iZiI6MTc5Mjk5OTk5MCwiZXhwIjoxNzkzMDAwMTAwLCJqdGkiOiJqdGktMTEifQ.E3wyrIiOXQnAg3HZkVB4_zhrdGLCvT7r16HuAG8K9bQIKlda7S5-V4NeXzQh91OavWZdJi7QLvoT0FcySMx4pw"
+          },
+          "expect": {
+            "ok": false,
+            "reason": "bad_typ"
+          }
+        }
+      ]
+    },
+    {
+      "name": "malformed",
+      "description": "X-Bmai-Actor is not a JWT",
+      "options": {},
+      "calls": [
+        {
+          "headers": {
+            "X-Bmai-Actor": "not.a.jwt"
+          },
+          "expect": {
+            "ok": false,
+            "reason": "malformed"
+          }
+        }
+      ]
+    },
+    {
+      "name": "malformed_two_parts",
+      "description": "Only two segments",
+      "options": {},
+      "calls": [
+        {
+          "headers": {
+            "X-Bmai-Actor": "aaaa.bbbb"
+          },
+          "expect": {
+            "ok": false,
+            "reason": "malformed"
+          }
+        }
+      ]
+    },
+    {
+      "name": "bad_alg_hs256",
+      "description": "alg HS256 is refused",
+      "options": {},
+      "calls": [
+        {
+          "headers": {
+            "X-Bmai-Actor": "eyJhbGciOiJIUzI1NiIsInR5cCI6ImJtYWktYWN0b3Irand0Iiwia2lkIjoidGVzdC0xIn0.eyJpc3MiOiJodHRwczovL2J1c3ltYXRlLmFpIiwiYXVkIjoiaHR0cHM6Ly9tY3AuZXhhbXBsZS50ZXN0Iiwic3ViIjoidXNlcl8xMjMiLCJpZHAiOiJpZHBfYWNtZSIsInRlbmFudF9pZCI6ImFjbWUiLCJjb25uZWN0b3JfaWQiOiJjb25uX2FjbWVfMSIsInN1cHBvcnRfc2Vzc2lvbl9pZCI6InNzXzEiLCJhY3Rvcl9raW5kIjoiaWRlbnRpZmllZCIsImNvbmZpcm1lZCI6ZmFsc2UsInRvb2wiOiJnZXRfd2FsbGV0X2JhbGFuY2UiLCJpYXQiOjE3OTI5OTk5OTAsIm5iZiI6MTc5Mjk5OTk5MCwiZXhwIjoxNzkzMDAwMTAwLCJqdGkiOiJqdGktMTIifQ.c2ln"
+          },
+          "expect": {
+            "ok": false,
+            "reason": "bad_alg"
+          }
+        }
+      ]
+    },
+    {
+      "name": "bad_alg_none",
+      "description": "alg none is refused",
+      "options": {},
+      "calls": [
+        {
+          "headers": {
+            "X-Bmai-Actor": "eyJhbGciOiJub25lIiwidHlwIjoiYm1haS1hY3Rvcitqd3QiLCJraWQiOiJ0ZXN0LTEifQ.eyJpc3MiOiJodHRwczovL2J1c3ltYXRlLmFpIiwiYXVkIjoiaHR0cHM6Ly9tY3AuZXhhbXBsZS50ZXN0Iiwic3ViIjoidXNlcl8xMjMiLCJpZHAiOiJpZHBfYWNtZSIsInRlbmFudF9pZCI6ImFjbWUiLCJjb25uZWN0b3JfaWQiOiJjb25uX2FjbWVfMSIsInN1cHBvcnRfc2Vzc2lvbl9pZCI6InNzXzEiLCJhY3Rvcl9raW5kIjoiaWRlbnRpZmllZCIsImNvbmZpcm1lZCI6ZmFsc2UsInRvb2wiOiJnZXRfd2FsbGV0X2JhbGFuY2UiLCJpYXQiOjE3OTI5OTk5OTAsIm5iZiI6MTc5Mjk5OTk5MCwiZXhwIjoxNzkzMDAwMTAwLCJqdGkiOiJqdGktMTMifQ."
+          },
+          "expect": {
+            "ok": false,
+            "reason": "bad_alg"
+          }
+        }
+      ]
+    },
+    {
+      "name": "unknown_kid",
+      "description": "kid not in the JWKS",
+      "options": {},
+      "calls": [
+        {
+          "headers": {
+            "X-Bmai-Actor": "eyJhbGciOiJFUzI1NiIsInR5cCI6ImJtYWktYWN0b3Irand0Iiwia2lkIjoibm9wZSJ9.eyJpc3MiOiJodHRwczovL2J1c3ltYXRlLmFpIiwiYXVkIjoiaHR0cHM6Ly9tY3AuZXhhbXBsZS50ZXN0Iiwic3ViIjoidXNlcl8xMjMiLCJpZHAiOiJpZHBfYWNtZSIsInRlbmFudF9pZCI6ImFjbWUiLCJjb25uZWN0b3JfaWQiOiJjb25uX2FjbWVfMSIsInN1cHBvcnRfc2Vzc2lvbl9pZCI6InNzXzEiLCJhY3Rvcl9raW5kIjoiaWRlbnRpZmllZCIsImNvbmZpcm1lZCI6ZmFsc2UsInRvb2wiOiJnZXRfd2FsbGV0X2JhbGFuY2UiLCJpYXQiOjE3OTI5OTk5OTAsIm5iZiI6MTc5Mjk5OTk5MCwiZXhwIjoxNzkzMDAwMTAwLCJqdGkiOiJqdGktMTQifQ.5lrX0llmCoZJ2cipx774YqXUczFFHFgSyjFE7FvL7741_1vW8WleQ_kxcj3hdEanoQ77QLjCoPPPzsszZuE_ZQ"
+          },
+          "expect": {
+            "ok": false,
+            "reason": "unknown_kid"
+          }
+        }
+      ]
+    },
+    {
+      "name": "missing_kid",
+      "description": "no kid in the header",
+      "options": {},
+      "calls": [
+        {
+          "headers": {
+            "X-Bmai-Actor": "eyJhbGciOiJFUzI1NiIsInR5cCI6ImJtYWktYWN0b3Irand0In0.eyJpc3MiOiJodHRwczovL2J1c3ltYXRlLmFpIiwiYXVkIjoiaHR0cHM6Ly9tY3AuZXhhbXBsZS50ZXN0Iiwic3ViIjoidXNlcl8xMjMiLCJpZHAiOiJpZHBfYWNtZSIsInRlbmFudF9pZCI6ImFjbWUiLCJjb25uZWN0b3JfaWQiOiJjb25uX2FjbWVfMSIsInN1cHBvcnRfc2Vzc2lvbl9pZCI6InNzXzEiLCJhY3Rvcl9raW5kIjoiaWRlbnRpZmllZCIsImNvbmZpcm1lZCI6ZmFsc2UsInRvb2wiOiJnZXRfd2FsbGV0X2JhbGFuY2UiLCJpYXQiOjE3OTI5OTk5OTAsIm5iZiI6MTc5Mjk5OTk5MCwiZXhwIjoxNzkzMDAwMTAwLCJqdGkiOiJqdGktMTUifQ.Qmaqz0-hkSuj2hVO4qhoPRquByQriCocZhAOBXcLknfpJMf_KqC0-5QAA7O_30Y2aTNa23LzqkN2OvhsSysR0Q"
+          },
+          "expect": {
+            "ok": false,
+            "reason": "unknown_kid"
+          }
+        }
+      ]
+    },
+    {
+      "name": "bad_signature_tampered",
+      "description": "Payload changed after signing",
+      "options": {},
+      "calls": [
+        {
+          "headers": {
+            "X-Bmai-Actor": "eyJhbGciOiJFUzI1NiIsInR5cCI6ImJtYWktYWN0b3Irand0Iiwia2lkIjoidGVzdC0xIn0.eyJpc3MiOiJodHRwczovL2J1c3ltYXRlLmFpIiwiYXVkIjoiaHR0cHM6Ly9tY3AuZXhhbXBsZS50ZXN0Iiwic3ViIjoidXNlcl85OTkiLCJpZHAiOiJpZHBfYWNtZSIsInRlbmFudF9pZCI6ImFjbWUiLCJjb25uZWN0b3JfaWQiOiJjb25uX2FjbWVfMSIsInN1cHBvcnRfc2Vzc2lvbl9pZCI6InNzXzEiLCJhY3Rvcl9raW5kIjoiaWRlbnRpZmllZCIsImNvbmZpcm1lZCI6ZmFsc2UsInRvb2wiOiJnZXRfd2FsbGV0X2JhbGFuY2UiLCJpYXQiOjE3OTI5OTk5OTAsIm5iZiI6MTc5Mjk5OTk5MCwiZXhwIjoxNzkzMDAwMTAwLCJqdGkiOiJqdGktMTYifQ.X1EdRm2lMC4-9Fq5qIkcZjYjqGopGIwo4rXrZtW4gQaAaWDZCfny03t061ymHCSSYCCBTPFBpYrLisRXZPhysg"
+          },
+          "expect": {
+            "ok": false,
+            "reason": "bad_signature"
+          }
+        }
+      ]
+    },
+    {
+      "name": "bad_signature_other_key",
+      "description": "Signed by a key that is not published under that kid",
+      "options": {},
+      "calls": [
+        {
+          "headers": {
+            "X-Bmai-Actor": "eyJhbGciOiJFUzI1NiIsInR5cCI6ImJtYWktYWN0b3Irand0Iiwia2lkIjoidGVzdC0xIn0.eyJpc3MiOiJodHRwczovL2J1c3ltYXRlLmFpIiwiYXVkIjoiaHR0cHM6Ly9tY3AuZXhhbXBsZS50ZXN0Iiwic3ViIjoidXNlcl8xMjMiLCJpZHAiOiJpZHBfYWNtZSIsInRlbmFudF9pZCI6ImFjbWUiLCJjb25uZWN0b3JfaWQiOiJjb25uX2FjbWVfMSIsInN1cHBvcnRfc2Vzc2lvbl9pZCI6InNzXzEiLCJhY3Rvcl9raW5kIjoiaWRlbnRpZmllZCIsImNvbmZpcm1lZCI6ZmFsc2UsInRvb2wiOiJnZXRfd2FsbGV0X2JhbGFuY2UiLCJpYXQiOjE3OTI5OTk5OTAsIm5iZiI6MTc5Mjk5OTk5MCwiZXhwIjoxNzkzMDAwMTAwLCJqdGkiOiJqdGktMTcifQ.Uq5zGsSiNguQx3TEA5o2pkydPT7sTxjrs5n17Ra8jlHyOb9GOm7306gAyv0uhn1vHvQmqqgQJrfTZmDEZer85Q"
+          },
+          "expect": {
+            "ok": false,
+            "reason": "bad_signature"
+          }
+        }
+      ]
+    },
+    {
+      "name": "bad_issuer",
+      "description": "iss differs",
+      "options": {},
+      "calls": [
+        {
+          "headers": {
+            "X-Bmai-Actor": "eyJhbGciOiJFUzI1NiIsInR5cCI6ImJtYWktYWN0b3Irand0Iiwia2lkIjoidGVzdC0xIn0.eyJpc3MiOiJodHRwczovL2V2aWwuZXhhbXBsZSIsImF1ZCI6Imh0dHBzOi8vbWNwLmV4YW1wbGUudGVzdCIsInN1YiI6InVzZXJfMTIzIiwiaWRwIjoiaWRwX2FjbWUiLCJ0ZW5hbnRfaWQiOiJhY21lIiwiY29ubmVjdG9yX2lkIjoiY29ubl9hY21lXzEiLCJzdXBwb3J0X3Nlc3Npb25faWQiOiJzc18xIiwiYWN0b3Jfa2luZCI6ImlkZW50aWZpZWQiLCJjb25maXJtZWQiOmZhbHNlLCJ0b29sIjoiZ2V0X3dhbGxldF9iYWxhbmNlIiwiaWF0IjoxNzkyOTk5OTkwLCJuYmYiOjE3OTI5OTk5OTAsImV4cCI6MTc5MzAwMDEwMCwianRpIjoianRpLTE4In0.pY4Dw7ceti-FrCz56W1Iw1LNZ04_WAx4dcb-ZSpPVXr8Rv4rfaUcvAXzNkYhKa-sbSo5Z6wJn9bXGq9dHVqXcg"
+          },
+          "expect": {
+            "ok": false,
+            "reason": "bad_issuer"
+          }
+        }
+      ]
+    },
+    {
+      "name": "bad_audience",
+      "description": "aud is another connector",
+      "options": {},
+      "calls": [
+        {
+          "headers": {
+            "X-Bmai-Actor": "eyJhbGciOiJFUzI1NiIsInR5cCI6ImJtYWktYWN0b3Irand0Iiwia2lkIjoidGVzdC0xIn0.eyJpc3MiOiJodHRwczovL2J1c3ltYXRlLmFpIiwiYXVkIjoiaHR0cHM6Ly9vdGhlci5leGFtcGxlLnRlc3QiLCJzdWIiOiJ1c2VyXzEyMyIsImlkcCI6ImlkcF9hY21lIiwidGVuYW50X2lkIjoiYWNtZSIsImNvbm5lY3Rvcl9pZCI6ImNvbm5fYWNtZV8xIiwic3VwcG9ydF9zZXNzaW9uX2lkIjoic3NfMSIsImFjdG9yX2tpbmQiOiJpZGVudGlmaWVkIiwiY29uZmlybWVkIjpmYWxzZSwidG9vbCI6ImdldF93YWxsZXRfYmFsYW5jZSIsImlhdCI6MTc5Mjk5OTk5MCwibmJmIjoxNzkyOTk5OTkwLCJleHAiOjE3OTMwMDAxMDAsImp0aSI6Imp0aS0xOSJ9.mOet_irrCwN-HzWZzU2zevvGmF0j8UFei7IVlAU_t_XROLeBRG5Ph6IVDUAx2LgR0g0vkay21esNgVz2vqSItw"
+          },
+          "expect": {
+            "ok": false,
+            "reason": "bad_audience"
+          }
+        }
+      ]
+    },
+    {
+      "name": "bad_audience_trailing_slash",
+      "description": "aud must match the origin exactly",
+      "options": {},
+      "calls": [
+        {
+          "headers": {
+            "X-Bmai-Actor": "eyJhbGciOiJFUzI1NiIsInR5cCI6ImJtYWktYWN0b3Irand0Iiwia2lkIjoidGVzdC0xIn0.eyJpc3MiOiJodHRwczovL2J1c3ltYXRlLmFpIiwiYXVkIjoiaHR0cHM6Ly9tY3AuZXhhbXBsZS50ZXN0LyIsInN1YiI6InVzZXJfMTIzIiwiaWRwIjoiaWRwX2FjbWUiLCJ0ZW5hbnRfaWQiOiJhY21lIiwiY29ubmVjdG9yX2lkIjoiY29ubl9hY21lXzEiLCJzdXBwb3J0X3Nlc3Npb25faWQiOiJzc18xIiwiYWN0b3Jfa2luZCI6ImlkZW50aWZpZWQiLCJjb25maXJtZWQiOmZhbHNlLCJ0b29sIjoiZ2V0X3dhbGxldF9iYWxhbmNlIiwiaWF0IjoxNzkyOTk5OTkwLCJuYmYiOjE3OTI5OTk5OTAsImV4cCI6MTc5MzAwMDEwMCwianRpIjoianRpLTIwIn0.egbdxY9B3mu9jfNp_3ZaZzVuBAq-sd9ZP0uOCxPwx50Uk6SMjXb5-b2vmqBkWYBl7MzGGR7lPYPEzkWB0CFyZA"
+          },
+          "expect": {
+            "ok": false,
+            "reason": "bad_audience"
+          }
+        }
+      ]
+    },
+    {
+      "name": "expired",
+      "description": "exp 11 s in the past (skew is 10 s)",
+      "options": {},
+      "calls": [
+        {
+          "headers": {
+            "X-Bmai-Actor": "eyJhbGciOiJFUzI1NiIsInR5cCI6ImJtYWktYWN0b3Irand0Iiwia2lkIjoidGVzdC0xIn0.eyJpc3MiOiJodHRwczovL2J1c3ltYXRlLmFpIiwiYXVkIjoiaHR0cHM6Ly9tY3AuZXhhbXBsZS50ZXN0Iiwic3ViIjoidXNlcl8xMjMiLCJpZHAiOiJpZHBfYWNtZSIsInRlbmFudF9pZCI6ImFjbWUiLCJjb25uZWN0b3JfaWQiOiJjb25uX2FjbWVfMSIsInN1cHBvcnRfc2Vzc2lvbl9pZCI6InNzXzEiLCJhY3Rvcl9raW5kIjoiaWRlbnRpZmllZCIsImNvbmZpcm1lZCI6ZmFsc2UsInRvb2wiOiJnZXRfd2FsbGV0X2JhbGFuY2UiLCJpYXQiOjE3OTI5OTk5NDAsIm5iZiI6MTc5Mjk5OTk0MCwiZXhwIjoxNzkyOTk5OTg5LCJqdGkiOiJqdGktMjEifQ.KWgj517FnGVfbkE1s8uUfw65FmGiyuJbcDoCGT9LlURocrsdKN7g5XHMNuvvpo84qxgiNZtMHpfT_VrYzj9bLQ"
+          },
+          "expect": {
+            "ok": false,
+            "reason": "expired"
+          }
+        }
+      ]
+    },
+    {
+      "name": "not_yet_valid",
+      "description": "nbf 11 s in the future",
+      "options": {},
+      "calls": [
+        {
+          "headers": {
+            "X-Bmai-Actor": "eyJhbGciOiJFUzI1NiIsInR5cCI6ImJtYWktYWN0b3Irand0Iiwia2lkIjoidGVzdC0xIn0.eyJpc3MiOiJodHRwczovL2J1c3ltYXRlLmFpIiwiYXVkIjoiaHR0cHM6Ly9tY3AuZXhhbXBsZS50ZXN0Iiwic3ViIjoidXNlcl8xMjMiLCJpZHAiOiJpZHBfYWNtZSIsInRlbmFudF9pZCI6ImFjbWUiLCJjb25uZWN0b3JfaWQiOiJjb25uX2FjbWVfMSIsInN1cHBvcnRfc2Vzc2lvbl9pZCI6InNzXzEiLCJhY3Rvcl9raW5kIjoiaWRlbnRpZmllZCIsImNvbmZpcm1lZCI6ZmFsc2UsInRvb2wiOiJnZXRfd2FsbGV0X2JhbGFuY2UiLCJpYXQiOjE3OTI5OTk5OTUsIm5iZiI6MTc5MzAwMDAxMSwiZXhwIjoxNzkzMDAwMTAwLCJqdGkiOiJqdGktMjIifQ.e5i6ncXYzeYuXO19aLRQbPPmRYArvlYXrfQNq_sxiH9EAe7P8cH9VbWMCXkafG4QIgjDyCKr54OZiZTCayEogg"
+          },
+          "expect": {
+            "ok": false,
+            "reason": "not_yet_valid"
+          }
+        }
+      ]
+    },
+    {
+      "name": "lifetime_too_long",
+      "description": "exp-iat is 121 s",
+      "options": {},
+      "calls": [
+        {
+          "headers": {
+            "X-Bmai-Actor": "eyJhbGciOiJFUzI1NiIsInR5cCI6ImJtYWktYWN0b3Irand0Iiwia2lkIjoidGVzdC0xIn0.eyJpc3MiOiJodHRwczovL2J1c3ltYXRlLmFpIiwiYXVkIjoiaHR0cHM6Ly9tY3AuZXhhbXBsZS50ZXN0Iiwic3ViIjoidXNlcl8xMjMiLCJpZHAiOiJpZHBfYWNtZSIsInRlbmFudF9pZCI6ImFjbWUiLCJjb25uZWN0b3JfaWQiOiJjb25uX2FjbWVfMSIsInN1cHBvcnRfc2Vzc2lvbl9pZCI6InNzXzEiLCJhY3Rvcl9raW5kIjoiaWRlbnRpZmllZCIsImNvbmZpcm1lZCI6ZmFsc2UsInRvb2wiOiJnZXRfd2FsbGV0X2JhbGFuY2UiLCJpYXQiOjE3OTI5OTk5NzksIm5iZiI6MTc5Mjk5OTk3OSwiZXhwIjoxNzkzMDAwMTAwLCJqdGkiOiJqdGktMjMifQ.8_dsrwJyVjN0qOPUcCtv4Bv8OZJvqohXrT_xG48j30TSWteww7JJ18UNdD5aolJU86C2mXSGOBpK--MV1yy1FQ"
+          },
+          "expect": {
+            "ok": false,
+            "reason": "lifetime_too_long"
+          }
+        }
+      ]
+    },
+    {
+      "name": "tenant_mismatch",
+      "description": "tenant_id differs",
+      "options": {},
+      "calls": [
+        {
+          "headers": {
+            "X-Bmai-Actor": "eyJhbGciOiJFUzI1NiIsInR5cCI6ImJtYWktYWN0b3Irand0Iiwia2lkIjoidGVzdC0xIn0.eyJpc3MiOiJodHRwczovL2J1c3ltYXRlLmFpIiwiYXVkIjoiaHR0cHM6Ly9tY3AuZXhhbXBsZS50ZXN0Iiwic3ViIjoidXNlcl8xMjMiLCJpZHAiOiJpZHBfYWNtZSIsInRlbmFudF9pZCI6Im90aGVyIiwiY29ubmVjdG9yX2lkIjoiY29ubl9hY21lXzEiLCJzdXBwb3J0X3Nlc3Npb25faWQiOiJzc18xIiwiYWN0b3Jfa2luZCI6ImlkZW50aWZpZWQiLCJjb25maXJtZWQiOmZhbHNlLCJ0b29sIjoiZ2V0X3dhbGxldF9iYWxhbmNlIiwiaWF0IjoxNzkyOTk5OTkwLCJuYmYiOjE3OTI5OTk5OTAsImV4cCI6MTc5MzAwMDEwMCwianRpIjoianRpLTI0In0.ZTemJuN0ZFXXEcVpc-dVTGoYEeqGK1ZDnyxMpWFpc4_uN8geIjQIlC88YBVoSNMD1lVloDZrMBPXySeJTidVYA"
+          },
+          "expect": {
+            "ok": false,
+            "reason": "tenant_mismatch"
+          }
+        }
+      ]
+    },
+    {
+      "name": "connector_mismatch",
+      "description": "connector_id differs",
+      "options": {},
+      "calls": [
+        {
+          "headers": {
+            "X-Bmai-Actor": "eyJhbGciOiJFUzI1NiIsInR5cCI6ImJtYWktYWN0b3Irand0Iiwia2lkIjoidGVzdC0xIn0.eyJpc3MiOiJodHRwczovL2J1c3ltYXRlLmFpIiwiYXVkIjoiaHR0cHM6Ly9tY3AuZXhhbXBsZS50ZXN0Iiwic3ViIjoidXNlcl8xMjMiLCJpZHAiOiJpZHBfYWNtZSIsInRlbmFudF9pZCI6ImFjbWUiLCJjb25uZWN0b3JfaWQiOiJjb25uX290aGVyIiwic3VwcG9ydF9zZXNzaW9uX2lkIjoic3NfMSIsImFjdG9yX2tpbmQiOiJpZGVudGlmaWVkIiwiY29uZmlybWVkIjpmYWxzZSwidG9vbCI6ImdldF93YWxsZXRfYmFsYW5jZSIsImlhdCI6MTc5Mjk5OTk5MCwibmJmIjoxNzkyOTk5OTkwLCJleHAiOjE3OTMwMDAxMDAsImp0aSI6Imp0aS0yNSJ9.7ladQBYjJopsCGTSFlnSOSvbUopKoolXBYuAm47QhRCABPnwVrQ-yYS6CsTG9Zn1L-vCA1f2zJ-xhEYZrU94_w"
+          },
+          "expect": {
+            "ok": false,
+            "reason": "connector_mismatch"
+          }
+        }
+      ]
+    },
+    {
+      "name": "idp_mismatch",
+      "description": "idp differs when the verifier pins it",
+      "options": {},
+      "calls": [
+        {
+          "headers": {
+            "X-Bmai-Actor": "eyJhbGciOiJFUzI1NiIsInR5cCI6ImJtYWktYWN0b3Irand0Iiwia2lkIjoidGVzdC0xIn0.eyJpc3MiOiJodHRwczovL2J1c3ltYXRlLmFpIiwiYXVkIjoiaHR0cHM6Ly9tY3AuZXhhbXBsZS50ZXN0Iiwic3ViIjoidXNlcl8xMjMiLCJpZHAiOiJpZHBfb3RoZXIiLCJ0ZW5hbnRfaWQiOiJhY21lIiwiY29ubmVjdG9yX2lkIjoiY29ubl9hY21lXzEiLCJzdXBwb3J0X3Nlc3Npb25faWQiOiJzc18xIiwiYWN0b3Jfa2luZCI6ImlkZW50aWZpZWQiLCJjb25maXJtZWQiOmZhbHNlLCJ0b29sIjoiZ2V0X3dhbGxldF9iYWxhbmNlIiwiaWF0IjoxNzkyOTk5OTkwLCJuYmYiOjE3OTI5OTk5OTAsImV4cCI6MTc5MzAwMDEwMCwianRpIjoianRpLTI2In0.bUul3ygYP3EBf43awE0EcOcLhzz_qfQujUUTqheQKc_AwpbGrfjsdUGikPG2LIOFdl_7jWUjb8a14qkjCe5MJw"
+          },
+          "expect": {
+            "ok": false,
+            "reason": "idp_mismatch"
+          }
+        }
+      ]
+    },
+    {
+      "name": "not_identified_anonymous",
+      "description": "actor_kind anonymous",
+      "options": {},
+      "calls": [
+        {
+          "headers": {
+            "X-Bmai-Actor": "eyJhbGciOiJFUzI1NiIsInR5cCI6ImJtYWktYWN0b3Irand0Iiwia2lkIjoidGVzdC0xIn0.eyJpc3MiOiJodHRwczovL2J1c3ltYXRlLmFpIiwiYXVkIjoiaHR0cHM6Ly9tY3AuZXhhbXBsZS50ZXN0Iiwic3ViIjoiYW5vbnltb3VzOmFiYyIsImlkcCI6ImlkcF9hY21lIiwidGVuYW50X2lkIjoiYWNtZSIsImNvbm5lY3Rvcl9pZCI6ImNvbm5fYWNtZV8xIiwic3VwcG9ydF9zZXNzaW9uX2lkIjoic3NfMSIsImFjdG9yX2tpbmQiOiJhbm9ueW1vdXMiLCJjb25maXJtZWQiOmZhbHNlLCJ0b29sIjoiZ2V0X3dhbGxldF9iYWxhbmNlIiwiaWF0IjoxNzkyOTk5OTkwLCJuYmYiOjE3OTI5OTk5OTAsImV4cCI6MTc5MzAwMDEwMCwianRpIjoianRpLTI3In0.KzWxTK-mTxHFEYE5z-6SG8dIXUsZfTtLZLmUHGxDRJJzyL5nulMVihmePFjuB4LdqpXmx5y3p6PnDBm7QP5psA"
+          },
+          "expect": {
+            "ok": false,
+            "reason": "not_identified"
+          }
+        }
+      ]
+    },
+    {
+      "name": "not_identified_missing",
+      "description": "actor_kind absent",
+      "options": {},
+      "calls": [
+        {
+          "headers": {
+            "X-Bmai-Actor": "eyJhbGciOiJFUzI1NiIsInR5cCI6ImJtYWktYWN0b3Irand0Iiwia2lkIjoidGVzdC0xIn0.eyJpc3MiOiJodHRwczovL2J1c3ltYXRlLmFpIiwiYXVkIjoiaHR0cHM6Ly9tY3AuZXhhbXBsZS50ZXN0Iiwic3ViIjoidXNlcl8xMjMiLCJpZHAiOiJpZHBfYWNtZSIsInRlbmFudF9pZCI6ImFjbWUiLCJjb25uZWN0b3JfaWQiOiJjb25uX2FjbWVfMSIsInN1cHBvcnRfc2Vzc2lvbl9pZCI6InNzXzEiLCJjb25maXJtZWQiOmZhbHNlLCJ0b29sIjoiZ2V0X3dhbGxldF9iYWxhbmNlIiwiaWF0IjoxNzkyOTk5OTkwLCJuYmYiOjE3OTI5OTk5OTAsImV4cCI6MTc5MzAwMDEwMCwianRpIjoianRpLTI4In0.48PYLe8Id14zRDv5h3hPl5z2bNlzqd2JTGJxjV8SuDiyDrHJeTJo8EI-N89p8Ju5S3PWPUyJqjBa34zqQikxnA"
+          },
+          "expect": {
+            "ok": false,
+            "reason": "not_identified"
+          }
+        }
+      ]
+    },
+    {
+      "name": "tool_mismatch",
+      "description": "token is for another tool",
+      "options": {
+        "tool": "get_wallet_balance"
+      },
+      "calls": [
+        {
+          "headers": {
+            "X-Bmai-Actor": "eyJhbGciOiJFUzI1NiIsInR5cCI6ImJtYWktYWN0b3Irand0Iiwia2lkIjoidGVzdC0xIn0.eyJpc3MiOiJodHRwczovL2J1c3ltYXRlLmFpIiwiYXVkIjoiaHR0cHM6Ly9tY3AuZXhhbXBsZS50ZXN0Iiwic3ViIjoidXNlcl8xMjMiLCJpZHAiOiJpZHBfYWNtZSIsInRlbmFudF9pZCI6ImFjbWUiLCJjb25uZWN0b3JfaWQiOiJjb25uX2FjbWVfMSIsInN1cHBvcnRfc2Vzc2lvbl9pZCI6InNzXzEiLCJhY3Rvcl9raW5kIjoiaWRlbnRpZmllZCIsImNvbmZpcm1lZCI6ZmFsc2UsInRvb2wiOiJjcmVhdGVfZGVsaXZlcnkiLCJpYXQiOjE3OTI5OTk5OTAsIm5iZiI6MTc5Mjk5OTk5MCwiZXhwIjoxNzkzMDAwMTAwLCJqdGkiOiJqdGktMjkifQ.uhmivp3OcEuaYO8GF77s2mjDT9IauAsV0kIDJtUr9CEUVDtFxF4Txehh_u4Wqs34jiPsQX8osJEaxqORuchjhQ"
+          },
+          "expect": {
+            "ok": false,
+            "reason": "tool_mismatch"
+          }
+        }
+      ]
+    },
+    {
+      "name": "missing_claim_jti",
+      "description": "no jti",
+      "options": {},
+      "calls": [
+        {
+          "headers": {
+            "X-Bmai-Actor": "eyJhbGciOiJFUzI1NiIsInR5cCI6ImJtYWktYWN0b3Irand0Iiwia2lkIjoidGVzdC0xIn0.eyJpc3MiOiJodHRwczovL2J1c3ltYXRlLmFpIiwiYXVkIjoiaHR0cHM6Ly9tY3AuZXhhbXBsZS50ZXN0Iiwic3ViIjoidXNlcl8xMjMiLCJpZHAiOiJpZHBfYWNtZSIsInRlbmFudF9pZCI6ImFjbWUiLCJjb25uZWN0b3JfaWQiOiJjb25uX2FjbWVfMSIsInN1cHBvcnRfc2Vzc2lvbl9pZCI6InNzXzEiLCJhY3Rvcl9raW5kIjoiaWRlbnRpZmllZCIsImNvbmZpcm1lZCI6ZmFsc2UsInRvb2wiOiJnZXRfd2FsbGV0X2JhbGFuY2UiLCJpYXQiOjE3OTI5OTk5OTAsIm5iZiI6MTc5Mjk5OTk5MCwiZXhwIjoxNzkzMDAwMTAwfQ.XZSvY5bk62txvA--5ic4oaZdhrO3OkeELvm1y1CcBj71tghXbhtx8ukEUGBNxkDOKMwCnNQ2wQ9Hd1ZvEdfwqA"
+          },
+          "expect": {
+            "ok": false,
+            "reason": "missing_claim"
+          }
+        }
+      ]
+    },
+    {
+      "name": "missing_claim_sub",
+      "description": "no sub",
+      "options": {},
+      "calls": [
+        {
+          "headers": {
+            "X-Bmai-Actor": "eyJhbGciOiJFUzI1NiIsInR5cCI6ImJtYWktYWN0b3Irand0Iiwia2lkIjoidGVzdC0xIn0.eyJpc3MiOiJodHRwczovL2J1c3ltYXRlLmFpIiwiYXVkIjoiaHR0cHM6Ly9tY3AuZXhhbXBsZS50ZXN0IiwiaWRwIjoiaWRwX2FjbWUiLCJ0ZW5hbnRfaWQiOiJhY21lIiwiY29ubmVjdG9yX2lkIjoiY29ubl9hY21lXzEiLCJzdXBwb3J0X3Nlc3Npb25faWQiOiJzc18xIiwiYWN0b3Jfa2luZCI6ImlkZW50aWZpZWQiLCJjb25maXJtZWQiOmZhbHNlLCJ0b29sIjoiZ2V0X3dhbGxldF9iYWxhbmNlIiwiaWF0IjoxNzkyOTk5OTkwLCJuYmYiOjE3OTI5OTk5OTAsImV4cCI6MTc5MzAwMDEwMCwianRpIjoianRpLTMxIn0.yJTnIDsfLs5qfVgrFQ0JW4sb9YU2w59uWQIUVdo_KZEp2jgMUDmeqT-1useDfr3Nvusohvk5tFNi5qDp8aGkNg"
+          },
+          "expect": {
+            "ok": false,
+            "reason": "missing_claim"
+          }
+        }
+      ]
+    },
+    {
+      "name": "replay",
+      "description": "Second use of the same jti is refused",
+      "options": {},
+      "calls": [
+        {
+          "headers": {
+            "X-Bmai-Actor": "eyJhbGciOiJFUzI1NiIsInR5cCI6ImJtYWktYWN0b3Irand0Iiwia2lkIjoidGVzdC0xIn0.eyJpc3MiOiJodHRwczovL2J1c3ltYXRlLmFpIiwiYXVkIjoiaHR0cHM6Ly9tY3AuZXhhbXBsZS50ZXN0Iiwic3ViIjoidXNlcl8xMjMiLCJpZHAiOiJpZHBfYWNtZSIsInRlbmFudF9pZCI6ImFjbWUiLCJjb25uZWN0b3JfaWQiOiJjb25uX2FjbWVfMSIsInN1cHBvcnRfc2Vzc2lvbl9pZCI6InNzXzEiLCJhY3Rvcl9raW5kIjoiaWRlbnRpZmllZCIsImNvbmZpcm1lZCI6ZmFsc2UsInRvb2wiOiJnZXRfd2FsbGV0X2JhbGFuY2UiLCJpYXQiOjE3OTI5OTk5OTAsIm5iZiI6MTc5Mjk5OTk5MCwiZXhwIjoxNzkzMDAwMTAwLCJqdGkiOiJqdGktMzIifQ.mALBlu18nX95x3lrFsFyPlbhsAuR4VfUM13ot9VN4akN9s_5BncPH2TAlyHYSB-fO6w_7zzdR8ljT4jnwaZgWQ"
+          },
+          "expect": {
+            "ok": true,
+            "actor": {
+              "sub": "user_123",
+              "idp": "idp_acme",
+              "confirmed": false,
+              "tool": "get_wallet_balance",
+              "jti": "jti-32",
+              "supportSessionId": "ss_1"
+            }
+          }
+        },
+        {
+          "headers": {
+            "X-Bmai-Actor": "eyJhbGciOiJFUzI1NiIsInR5cCI6ImJtYWktYWN0b3Irand0Iiwia2lkIjoidGVzdC0xIn0.eyJpc3MiOiJodHRwczovL2J1c3ltYXRlLmFpIiwiYXVkIjoiaHR0cHM6Ly9tY3AuZXhhbXBsZS50ZXN0Iiwic3ViIjoidXNlcl8xMjMiLCJpZHAiOiJpZHBfYWNtZSIsInRlbmFudF9pZCI6ImFjbWUiLCJjb25uZWN0b3JfaWQiOiJjb25uX2FjbWVfMSIsInN1cHBvcnRfc2Vzc2lvbl9pZCI6InNzXzEiLCJhY3Rvcl9raW5kIjoiaWRlbnRpZmllZCIsImNvbmZpcm1lZCI6ZmFsc2UsInRvb2wiOiJnZXRfd2FsbGV0X2JhbGFuY2UiLCJpYXQiOjE3OTI5OTk5OTAsIm5iZiI6MTc5Mjk5OTk5MCwiZXhwIjoxNzkzMDAwMTAwLCJqdGkiOiJqdGktMzIifQ.mALBlu18nX95x3lrFsFyPlbhsAuR4VfUM13ot9VN4akN9s_5BncPH2TAlyHYSB-fO6w_7zzdR8ljT4jnwaZgWQ"
+          },
+          "expect": {
+            "ok": false,
+            "reason": "replay"
+          }
+        }
+      ]
+    },
+    {
+      "name": "rejected_does_not_consume_jti",
+      "description": "A call refused for tool_mismatch leaves the jti usable",
+      "options": {},
+      "calls": [
+        {
+          "headers": {
+            "X-Bmai-Actor": "eyJhbGciOiJFUzI1NiIsInR5cCI6ImJtYWktYWN0b3Irand0Iiwia2lkIjoidGVzdC0xIn0.eyJpc3MiOiJodHRwczovL2J1c3ltYXRlLmFpIiwiYXVkIjoiaHR0cHM6Ly9tY3AuZXhhbXBsZS50ZXN0Iiwic3ViIjoidXNlcl8xMjMiLCJpZHAiOiJpZHBfYWNtZSIsInRlbmFudF9pZCI6ImFjbWUiLCJjb25uZWN0b3JfaWQiOiJjb25uX2FjbWVfMSIsInN1cHBvcnRfc2Vzc2lvbl9pZCI6InNzXzEiLCJhY3Rvcl9raW5kIjoiaWRlbnRpZmllZCIsImNvbmZpcm1lZCI6ZmFsc2UsInRvb2wiOiJnZXRfd2FsbGV0X2JhbGFuY2UiLCJpYXQiOjE3OTI5OTk5OTAsIm5iZiI6MTc5Mjk5OTk5MCwiZXhwIjoxNzkzMDAwMTAwLCJqdGkiOiJqdGktMzMifQ.CPIhJkDtpO1Yho7vR-K6b0b6Q0lPWlcvTTKJ3uMkJ6-W214s-R4aR4hBAyksA_FfuwABcjQR09AO3mqA7an_Fw"
+          },
+          "options": {
+            "tool": "other_tool"
+          },
+          "expect": {
+            "ok": false,
+            "reason": "tool_mismatch"
+          }
+        },
+        {
+          "headers": {
+            "X-Bmai-Actor": "eyJhbGciOiJFUzI1NiIsInR5cCI6ImJtYWktYWN0b3Irand0Iiwia2lkIjoidGVzdC0xIn0.eyJpc3MiOiJodHRwczovL2J1c3ltYXRlLmFpIiwiYXVkIjoiaHR0cHM6Ly9tY3AuZXhhbXBsZS50ZXN0Iiwic3ViIjoidXNlcl8xMjMiLCJpZHAiOiJpZHBfYWNtZSIsInRlbmFudF9pZCI6ImFjbWUiLCJjb25uZWN0b3JfaWQiOiJjb25uX2FjbWVfMSIsInN1cHBvcnRfc2Vzc2lvbl9pZCI6InNzXzEiLCJhY3Rvcl9raW5kIjoiaWRlbnRpZmllZCIsImNvbmZpcm1lZCI6ZmFsc2UsInRvb2wiOiJnZXRfd2FsbGV0X2JhbGFuY2UiLCJpYXQiOjE3OTI5OTk5OTAsIm5iZiI6MTc5Mjk5OTk5MCwiZXhwIjoxNzkzMDAwMTAwLCJqdGkiOiJqdGktMzMifQ.CPIhJkDtpO1Yho7vR-K6b0b6Q0lPWlcvTTKJ3uMkJ6-W214s-R4aR4hBAyksA_FfuwABcjQR09AO3mqA7an_Fw"
+          },
+          "expect": {
+            "ok": true,
+            "actor": {
+              "sub": "user_123",
+              "idp": "idp_acme",
+              "confirmed": false,
+              "tool": "get_wallet_balance",
+              "jti": "jti-33",
+              "supportSessionId": "ss_1"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

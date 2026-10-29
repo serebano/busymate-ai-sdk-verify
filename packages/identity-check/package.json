@@ -1,0 +1,15 @@
+{
+  "name": "@busymate/identity-check",
+  "version": "0.1.0",
+  "description": "Check a Busymate AI identity integration from a clean machine: issuer JWKS, mint endpoint, login_url prompt=none, framing headers, SameSite cookies and the connector actor round trip.",
+  "license": "UNLICENSED",
+  "repository": { "type": "git", "url": "git+https://github.com/serebano/busymate-ai-sdk-verify.git", "directory": "packages/identity-check" },
+  "homepage": "https://github.com/serebano/busymate-ai-sdk-verify#identity-check",
+  "type": "module",
+  "bin": { "identity-check": "./bin/identity-check.mjs" },
+  "main": "./src/checks.mjs",
+  "exports": { ".": "./src/checks.mjs", "./package.json": "./package.json" },
+  "files": ["bin", "src", "README.md", "CHANGELOG.md"],
+  "engines": { "node": ">=18.14" },
+  "scripts": { "test": "node --test test/*.test.mjs" }
+}
