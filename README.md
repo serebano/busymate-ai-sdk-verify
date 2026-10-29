@@ -1,4 +1,4 @@
-# Busymate AI verify — 0.1.1
+# Busymate AI verify — 0.1.2
 
 Official customer-side verification of the Busymate AI **connector actor token** (`bmai.actor/3`, contract `bmai-identity` 2.0.0), plus a CLI that checks your whole identity integration from a clean machine.
 
@@ -20,7 +20,7 @@ npm install @busymate/ai-verify
 npx @busymate/identity-check --help
 ```
 
-The same tarballs are attached to each [GitHub release](https://github.com/serebano/busymate-ai-sdk-verify/releases) with `SHA256SUMS` (for example `npm install https://github.com/serebano/busymate-ai-sdk-verify/releases/download/0.1.1/busymate-ai-verify-0.1.1.tgz`). Python, PHP and Go: copy the file from `busymate-ai-verify-snippets-<version>.tgz` (or this repo) into your project.
+The same tarballs are attached to each [GitHub release](https://github.com/serebano/busymate-ai-sdk-verify/releases) with `SHA256SUMS` (for example `npm install https://github.com/serebano/busymate-ai-sdk-verify/releases/download/0.1.2/busymate-ai-verify-0.1.2.tgz`). Python, PHP and Go: copy the file from `busymate-ai-verify-snippets-<version>.tgz` (or this repo) into your project.
 
 ## Verify in your MCP server (Node / Deno)
 
