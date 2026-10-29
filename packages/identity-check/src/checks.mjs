@@ -1,7 +1,7 @@
 // Checks for a Busymate AI identity integration. Zero dependencies, Node >= 18.14 (fetch, getSetCookie).
 import { createPublicKey, verify as cryptoVerify, randomBytes } from "node:crypto";
 
-export const VERSION = "0.1.1";
+export const VERSION = "0.1.2";
 const b64u = (s) => Buffer.from(s.replace(/-/g, "+").replace(/_/g, "/"), "base64");
 const res = (id, status, detail, extra = {}) => ({ id, status, detail, ...extra });
 const nonce = () => randomBytes(18).toString("base64url");

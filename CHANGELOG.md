@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.2
+
+- Release through npm trusted publishing (GitHub OIDC) only; `release.yml` no longer reads an `NPM_TOKEN` secret. No code change from 0.1.1.
+
 ## 0.1.1
 
 - First npm publish of `@busymate/ai-verify` and `@busymate/identity-check`, with provenance (`release.yml` uses GitHub OIDC, `--provenance --access public`). No code change from 0.1.0.
