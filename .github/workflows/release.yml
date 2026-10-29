@@ -1,11 +1,13 @@
 name: Release
 # Push a tag equal to the package version (e.g. 0.1.0) after sdk-check is green on main.
-# Creates the GitHub release with tarballs and SHA256SUMS. Publishes to npm only when the NPM_TOKEN secret exists.
+# Creates the GitHub release with tarballs and SHA256SUMS, then publishes to npm with provenance.
+# Auth: npm trusted publishing (OIDC) when configured on npmjs.com; otherwise the NPM_TOKEN secret (first publish).
 on:
   push:
     tags: ["[0-9]*"]
 permissions:
   contents: write
+  id-token: write
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -36,10 +38,13 @@ jobs:
           SHA-256:
           $(cat release/SHA256SUMS)"
           fi
-      - name: Publish to npm (skipped when NPM_TOKEN is not set)
+      - name: Publish to npm with provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          if [ -z "$NODE_AUTH_TOKEN" ]; then echo "NPM_TOKEN not set: skipping npm publish (GitHub release only)"; exit 0; fi
-          npm publish -w @busymate/ai-verify --access public
-          npm publish -w @busymate/identity-check --access public
+          # With a trusted publisher configured, an empty token makes npm fall back to OIDC.
+          [ -n "$NODE_AUTH_TOKEN" ] || unset NODE_AUTH_TOKEN
+          for ws in @busymate/ai-verify @busymate/identity-check; do
+            v=$(node -p "require('./packages/${ws#@busymate/}/package.json').version")
+            if npm view "$ws@$v" version >/dev/null 2>&1; then echo "$ws@$v already on npm"; else npm publish -w "$ws" --provenance --access public; fi
+          done

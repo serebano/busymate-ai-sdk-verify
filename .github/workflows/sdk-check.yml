@@ -103,7 +103,7 @@ jobs:
           D=$(mktemp -d); cd "$D"
           npx --yes --package="$(ls "$GITHUB_WORKSPACE"/release/busymate-identity-check-*.tgz)" identity-check --help | head -3
           npm init -y >/dev/null
-          npm install "$GITHUB_WORKSPACE"/release/busymate-ai-verify-0.1.0.tgz
+          npm install "$GITHUB_WORKSPACE"/release/busymate-ai-verify-*.tgz
           node -e "import('@busymate/ai-verify').then(m=>{ if(typeof m.verifyBusymateActor!=='function') process.exit(1); console.log('ai-verify imports ok') })"
       - uses: actions/upload-artifact@v4
         with: { name: release, path: release/ }
