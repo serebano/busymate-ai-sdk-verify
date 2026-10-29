@@ -1,0 +1,117 @@
+name: SDK checks
+on:
+  push:
+    branches: [main]
+    tags: ["*"]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  node:
+    name: node ${{ matrix.node }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ["18", "20", "22"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "${{ matrix.node }}" }
+      - run: npm install --no-audit --no-fund
+      - run: npm run typecheck
+      - run: npm test
+
+  deno:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - uses: denoland/setup-deno@v2
+        with: { deno-version: v2.x }
+      - run: npm install --no-audit --no-fund
+      - run: npm run test:deno -w @busymate/ai-verify
+
+  python:
+    name: python ${{ matrix.python }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.9", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "${{ matrix.python }}" }
+      - run: pip install cryptography
+      - run: python -m unittest -q test_vectors
+        working-directory: snippets/python
+
+  php:
+    name: php ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ["8.1", "8.3"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with: { php-version: "${{ matrix.php }}", extensions: openssl }
+      - run: php snippets/php/test_vectors.php
+
+  go:
+    name: go ${{ matrix.go }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        go: ["1.21", "stable"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with: { go-version: "${{ matrix.go }}" }
+      - run: go vet ./... && go test ./...
+        working-directory: snippets/go
+
+  vectors:
+    name: vectors in sync with the identity contract
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - name: Vectors are not hand-edited and match the contract
+        run: node scripts/sync-vectors.mjs --check
+        env:
+          BMAI_CONTRACT_VECTORS: ${{ vars.BMAI_CONTRACT_VECTORS }}
+
+  pack:
+    name: pack and smoke-test the tarballs from a clean directory
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - run: npm install --no-audit --no-fund
+      - run: npm run build
+      - run: node scripts/pack-all.mjs
+      - name: Clean-machine smoke test
+        run: |
+          set -e
+          D=$(mktemp -d); cd "$D"
+          npx --yes --package="$(ls "$GITHUB_WORKSPACE"/release/busymate-identity-check-*.tgz)" identity-check --help | head -3
+          npm init -y >/dev/null
+          npm install "$GITHUB_WORKSPACE"/release/busymate-ai-verify-0.1.0.tgz
+          node -e "import('@busymate/ai-verify').then(m=>{ if(typeof m.verifyBusymateActor!=='function') process.exit(1); console.log('ai-verify imports ok') })"
+      - uses: actions/upload-artifact@v4
+        with: { name: release, path: release/ }
+
+  sdk-check:
+    if: always()
+    needs: [node, deno, python, php, go, vectors, pack]
+    runs-on: ubuntu-latest
+    steps:
+      - name: All SDK checks passed
+        run: test "${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}" = false

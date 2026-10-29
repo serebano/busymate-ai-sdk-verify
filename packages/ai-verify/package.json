@@ -1,0 +1,27 @@
+{
+  "name": "@busymate/ai-verify",
+  "version": "0.1.0",
+  "description": "Verify the Busymate AI connector actor token (bmai.actor/3, ES256 + JWKS) in your MCP server or API. Node >=18 and Deno.",
+  "license": "UNLICENSED",
+  "repository": { "type": "git", "url": "git+https://github.com/serebano/busymate-ai-sdk-verify.git", "directory": "packages/ai-verify" },
+  "homepage": "https://github.com/serebano/busymate-ai-sdk-verify#readme",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" },
+    "./package.json": "./package.json"
+  },
+  "files": ["dist", "README.md", "CHANGELOG.md"],
+  "sideEffects": false,
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "prepack": "npm run build",
+    "test": "npm run build && node --test test/*.test.mjs",
+    "test:deno": "npm run build && deno test --allow-read --allow-net --no-check test/vectors.deno.test.ts"
+  },
+  "dependencies": { "jose": "^5.9.6" }
+}

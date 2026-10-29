@@ -1,0 +1,22 @@
+{
+  "name": "busymate-ai-sdk-verify",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Workspace for @busymate/ai-verify and @busymate/identity-check",
+  "license": "UNLICENSED",
+  "type": "module",
+  "workspaces": ["packages/*"],
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "build": "npm run build -w @busymate/ai-verify",
+    "typecheck": "npm run typecheck -w @busymate/ai-verify",
+    "test": "npm run test -w @busymate/ai-verify && npm run test -w @busymate/identity-check",
+    "vectors": "node scripts/gen-vectors.mjs",
+    "vectors:check": "node scripts/sync-vectors.mjs --check",
+    "pack:all": "node scripts/pack-all.mjs"
+  },
+  "devDependencies": {
+    "jose": "5.9.6",
+    "typescript": "5.6.3"
+  }
+}
