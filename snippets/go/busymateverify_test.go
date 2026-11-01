@@ -68,6 +68,12 @@ func TestVectors(t *testing.T) {
 					if ss, _ := e["supportSessionId"].(string); a.SupportSessionID != ss {
 						t.Fatalf("support session %q", a.SupportSessionID)
 					}
+					ha, _ := e["hostAccount"].(string)
+					he, _ := e["hostEnv"].(string)
+					hu, _ := e["hostUser"].(string)
+					if a.HostAccount != ha || a.HostEnv != he || a.HostUser != hu {
+						t.Fatalf("host context %q %q %q", a.HostAccount, a.HostEnv, a.HostUser)
+					}
 				} else {
 					var be *Error
 					if !errors.As(err, &be) || be.Reason != k.Expect.Reason {

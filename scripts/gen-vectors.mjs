@@ -115,6 +115,42 @@ await reject("tool_mismatch", "token is for another tool", "tool_mismatch", { to
 await reject("missing_claim_jti", "no jti", "missing_claim", { jti: undefined });
 await reject("missing_claim_sub", "no sub", "missing_claim", { sub: undefined });
 
+// Host account context (identity contract #3342/#3353): echoed when present, shape-checked, omitted when absent.
+{
+  const p = claims({ jti: jti(), host_account: "key_7f3a:sandbox", host_env: "sandbox", host_user: "person:0042" });
+  await add("valid_host_context", "host_account, host_env and host_user are returned as hostAccount, hostEnv, hostUser", X(await sign(p)),
+    ok({ jti: p.jti }, { hostAccount: "key_7f3a:sandbox", hostEnv: "sandbox", hostUser: "person:0042" }));
+}
+{
+  const p = claims({ jti: jti(), host_env: "live" });
+  await add("valid_host_env_only", "Only host_env present: only hostEnv is returned", X(await sign(p)), ok({ jti: p.jti }, { hostEnv: "live" }));
+}
+{
+  const p = claims({ jti: jti(), host_account: "a".repeat(120) });
+  await add("valid_host_account_max_length", "host_account of exactly 120 characters", X(await sign(p)), ok({ jti: p.jti }, { hostAccount: "a".repeat(120) }));
+}
+await reject("bad_host_env", "host_env other than live or sandbox", "bad_host_context", { host_env: "production" });
+await reject("bad_host_account_charset", "host_account with a space", "bad_host_context", { host_account: "key live" });
+await reject("bad_host_account_trailing_newline", "host_account with a trailing newline (a `$` regex would accept it)", "bad_host_context", { host_account: "key_1:live\n" });
+await reject("bad_host_account_too_long", "host_account of 121 characters", "bad_host_context", { host_account: "a".repeat(121) });
+await reject("bad_host_account_empty", "empty host_account", "bad_host_context", { host_account: "" });
+await reject("bad_host_user_type", "host_user that is not a string", "bad_host_context", { host_user: 42 });
+await reject("bad_host_user_null", "host_user null (send none, not null)", "bad_host_context", { host_user: null });
+// A bad host claim is refused before replay: the jti stays usable.
+{
+  const good = claims({ jti: jti() });
+  const t = await sign(good);
+  const badP = { ...good, host_env: "qa" };
+  const tb = await sign(badP);
+  cases.push({
+    name: "bad_host_context_does_not_consume_jti", description: "A token refused for bad_host_context leaves its jti usable", options: {},
+    calls: [
+      { headers: X(tb), expect: bad("bad_host_context") },
+      { headers: X(t), expect: ok({ jti: good.jti }) },
+    ],
+  });
+}
+
 // Replay: same token twice with one shared replay cache.
 {
   const p = claims({ jti: jti() });
@@ -155,7 +191,8 @@ const out = {
   reasons: [
     "missing_token", "malformed", "bad_alg", "bad_typ", "unknown_kid", "bad_signature", "bad_issuer", "bad_audience",
     "missing_claim", "expired", "not_yet_valid", "lifetime_too_long", "tenant_mismatch", "connector_mismatch",
-    "idp_mismatch", "not_identified", "tool_mismatch", "replay", "jwks_unavailable", "confirmation_required",
+    "idp_mismatch", "not_identified", "tool_mismatch", "bad_host_context", "replay", "jwks_unavailable", "confirmation_required",
+    "host_context_required",
   ],
   cases,
 };

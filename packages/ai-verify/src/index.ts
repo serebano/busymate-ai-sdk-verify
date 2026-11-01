@@ -9,8 +9,8 @@ export const ACTOR_TYP = "bmai-actor+jwt";
 export type VerifyReason =
   | "missing_token" | "malformed" | "bad_alg" | "bad_typ" | "unknown_kid" | "bad_signature" | "bad_issuer"
   | "bad_audience" | "missing_claim" | "expired" | "not_yet_valid" | "lifetime_too_long" | "tenant_mismatch"
-  | "connector_mismatch" | "idp_mismatch" | "not_identified" | "tool_mismatch" | "replay" | "jwks_unavailable"
-  | "confirmation_required";
+  | "connector_mismatch" | "idp_mismatch" | "not_identified" | "tool_mismatch" | "bad_host_context" | "replay" | "jwks_unavailable"
+  | "confirmation_required" | "host_context_required";
 
 /** Thrown for every refusal. Answer 401 with `WWW-Authenticate: Bearer error="invalid_token"` and do not fall through to another user. */
 export class BusymateActorError extends Error {
@@ -31,7 +31,18 @@ export interface BusymateActor {
   tool: string;
   jti: string;
   supportSessionId?: string;
+  /**
+   * Your account context exactly as your launch token signed it (`host_account`, `host_env`, `host_user`).
+   * Present only when the launch carried it. Check that `hostAccount` belongs to `sub` before you use it.
+   */
+  hostAccount?: string;
+  hostEnv?: "live" | "sandbox";
+  hostUser?: string;
 }
+
+/** `host_account` / `host_user` rule (identity contract `LAUNCH_CONTEXT_ID_PATTERN`): the WHOLE value, no trailing newline. */
+const HOST_ID = /^[A-Za-z0-9:_-]{1,120}$/;
+const HOST_ENVS = ["live", "sandbox"];
 
 export interface ReplayCache {
   /** Remember `jti` until `exp` (epoch seconds). Return true when new, false when already seen. May be async (Redis SET NX). */
@@ -180,14 +191,33 @@ export async function verifyBusymateActor(input: VerifyInput, options: VerifyOpt
   if (options.idp !== undefined && p.idp !== options.idp) throw new BusymateActorError("idp_mismatch");
   if (p.actor_kind !== "identified") throw new BusymateActorError("not_identified");
   if (options.tool !== undefined && p.tool !== options.tool) throw new BusymateActorError("tool_mismatch");
+  // Host account context: optional; shape-checked when present (before replay, so a bad token burns no jti).
+  const host: Pick<BusymateActor, "hostAccount" | "hostEnv" | "hostUser"> = {};
+  for (const [claim, field] of [["host_account", "hostAccount"], ["host_env", "hostEnv"], ["host_user", "hostUser"]] as const) {
+    const v = p[claim];
+    if (v === undefined) continue;
+    const ok = typeof v === "string" && (claim === "host_env" ? HOST_ENVS.includes(v) : HOST_ID.test(v));
+    if (!ok) throw new BusymateActorError("bad_host_context");
+    (host as Record<string, string>)[field] = v as string;
+  }
   if (!(await (options.replayCache ?? defaultReplay).add(jti, exp, nowS))) throw new BusymateActorError("replay");
   return {
     sub, idp: typeof p.idp === "string" ? p.idp : "", confirmed: p.confirmed === true, tool: typeof p.tool === "string" ? p.tool : "",
     jti, supportSessionId: typeof p.support_session_id === "string" ? p.support_session_id : undefined,
+    ...host,
   };
 }
 
 /** Money-moving and write tools need the customer's in-chat confirmation. Throws `confirmation_required`. */
+/**
+ * Require the account context on this token (for a host that sends one on every launch). Throws `host_context_required`
+ * when `host_account` or `host_env` is absent. Returns them typed.
+ */
+export function requireHostContext(actor: BusymateActor): { hostAccount: string; hostEnv: "live" | "sandbox"; hostUser?: string } {
+  if (!actor.hostAccount || !actor.hostEnv) throw new BusymateActorError("host_context_required");
+  return { hostAccount: actor.hostAccount, hostEnv: actor.hostEnv, ...(actor.hostUser ? { hostUser: actor.hostUser } : {}) };
+}
+
 export function requireConfirmed(actor: BusymateActor, isWriteTool = true): void {
   if (isWriteTool && !actor.confirmed) throw new BusymateActorError("confirmation_required");
 }

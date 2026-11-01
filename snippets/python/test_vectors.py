@@ -22,8 +22,9 @@ def make(case):
             if exp["ok"]:
                 a = run(case, call, cache)
                 e = exp["actor"]
-                self.assertEqual((a.sub, a.idp, a.confirmed, a.tool, a.jti, a.support_session_id),
-                                 (e["sub"], e["idp"], e["confirmed"], e["tool"], e["jti"], e.get("supportSessionId")))
+                self.assertEqual((a.sub, a.idp, a.confirmed, a.tool, a.jti, a.support_session_id, a.host_account, a.host_env, a.host_user),
+                                 (e["sub"], e["idp"], e["confirmed"], e["tool"], e["jti"], e.get("supportSessionId"),
+                                  e.get("hostAccount"), e.get("hostEnv"), e.get("hostUser")))
             else:
                 with self.assertRaises(BusymateActorError) as cm:
                     run(case, call, cache)

@@ -20,7 +20,8 @@ foreach ($V['cases'] as $case) {
             $a = BusymateVerify::verify($call['headers'], $o);
             if (!$exp['ok']) { $err = "expected {$exp['reason']}, got ok"; break; }
             $e = $exp['actor'];
-            $want = ['sub' => $e['sub'], 'idp' => $e['idp'], 'confirmed' => $e['confirmed'], 'tool' => $e['tool'], 'jti' => $e['jti'], 'support_session_id' => $e['supportSessionId'] ?? null];
+            $want = ['sub' => $e['sub'], 'idp' => $e['idp'], 'confirmed' => $e['confirmed'], 'tool' => $e['tool'], 'jti' => $e['jti'], 'support_session_id' => $e['supportSessionId'] ?? null,
+                'host_account' => $e['hostAccount'] ?? null, 'host_env' => $e['hostEnv'] ?? null, 'host_user' => $e['hostUser'] ?? null];
             if ($a !== $want) { $err = 'actor differs: ' . json_encode($a); break; }
         } catch (BusymateActorError $x) {
             if ($exp['ok'] || $x->reason !== $exp['reason']) { $err = "expected " . ($exp['ok'] ? 'ok' : $exp['reason']) . ", got {$x->reason}"; break; }

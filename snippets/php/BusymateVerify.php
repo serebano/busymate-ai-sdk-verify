@@ -147,6 +147,15 @@ final class BusymateVerify
         if (isset($o['idp']) && ($p['idp'] ?? null) !== $o['idp']) throw new BusymateActorError('idp_mismatch');
         if (($p['actor_kind'] ?? null) !== 'identified') throw new BusymateActorError('not_identified');
         if (isset($o['tool']) && ($p['tool'] ?? null) !== $o['tool']) throw new BusymateActorError('tool_mismatch');
+        // Host account context: optional, shape-checked when present (\A...\z: the whole value, no trailing newline).
+        $host = ['host_account' => null, 'host_env' => null, 'host_user' => null];
+        foreach (array_keys($host) as $claim) {
+            if (!array_key_exists($claim, $p)) continue;
+            $v = $p[$claim];
+            $ok = is_string($v) && ($claim === 'host_env' ? in_array($v, ['live', 'sandbox'], true) : preg_match('/\A[A-Za-z0-9:_-]{1,120}\z/D', $v) === 1);
+            if (!$ok) throw new BusymateActorError('bad_host_context');
+            $host[$claim] = $v;
+        }
         $store = &self::$seen;
         if (isset($o['seen'])) $store = &$o['seen'];
         foreach ($store as $k => $e) if ($e < $now) unset($store[$k]);
@@ -156,7 +165,13 @@ final class BusymateVerify
             'sub' => $sub, 'idp' => is_string($p['idp'] ?? null) ? $p['idp'] : '', 'confirmed' => ($p['confirmed'] ?? null) === true,
             'tool' => is_string($p['tool'] ?? null) ? $p['tool'] : '', 'jti' => $jti,
             'support_session_id' => is_string($p['support_session_id'] ?? null) ? $p['support_session_id'] : null,
-        ];
+        ] + $host;
+    }
+
+    /** For a host that sends its account context on every launch: throws host_context_required when it is missing. */
+    public static function requireHostContext(array $actor): void
+    {
+        if (empty($actor['host_account']) || empty($actor['host_env'])) throw new BusymateActorError('host_context_required');
     }
 
     /** Money-moving and write tools need the customer's in-chat confirmation. */

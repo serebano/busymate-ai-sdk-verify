@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { verifyBusymateActor, requireConfirmed, MemoryReplayCache, BusymateActorError, actorTokenFrom } from "../dist/index.js";
+import { verifyBusymateActor, requireConfirmed, requireHostContext, MemoryReplayCache, BusymateActorError, actorTokenFrom } from "../dist/index.js";
 
 const V = JSON.parse(readFileSync(new URL("../../../vectors/actor-v3.json", import.meta.url), "utf8"));
 
@@ -28,9 +28,9 @@ for (const c of V.cases) {
   });
 }
 
-test("vector set covers every reason except jwks_unavailable and confirmation_required", () => {
+test("vector set covers every reason except jwks_unavailable, confirmation_required and host_context_required", () => {
   const seen = new Set(V.cases.flatMap((c) => c.calls.map((k) => k.expect.reason)).filter(Boolean));
-  for (const r of V.reasons) if (!["jwks_unavailable", "confirmation_required"].includes(r)) assert.ok(seen.has(r), `no vector for ${r}`);
+  for (const r of V.reasons) if (!["jwks_unavailable", "confirmation_required", "host_context_required"].includes(r)) assert.ok(seen.has(r), `no vector for ${r}`);
 });
 
 test("accepts a Fetch Headers object, a request-like and a raw token", async () => {
@@ -65,4 +65,13 @@ test("JWKS fetched once, refetched (rate-limited) on unknown kid, jwks_unavailab
   assert.equal(calls, 2, "refetched once on unknown kid after cooldown");
   const down = async () => new Response("no", { status: 503 });
   await assert.rejects(verifyBusymateActor(again.headers, { ...base, jwksUrl: "https://jwks.test/b", fetch: down, replayCache: new MemoryReplayCache() }), (e) => e.reason === "jwks_unavailable");
+});
+
+test("requireHostContext", () => {
+  const base = { sub: "org:1", idp: "i", confirmed: false, tool: "t", jti: "j" };
+  assert.deepEqual(requireHostContext({ ...base, hostAccount: "k:live", hostEnv: "live" }), { hostAccount: "k:live", hostEnv: "live" });
+  assert.deepEqual(requireHostContext({ ...base, hostAccount: "k:live", hostEnv: "live", hostUser: "p:1" }), { hostAccount: "k:live", hostEnv: "live", hostUser: "p:1" });
+  for (const a of [base, { ...base, hostEnv: "live" }, { ...base, hostAccount: "k" }]) {
+    assert.throws(() => requireHostContext(a), (e) => e.reason === "host_context_required");
+  }
 });
