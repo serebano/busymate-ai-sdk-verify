@@ -3,7 +3,7 @@ Usage:
     actor = verify_busymate_actor(request.headers, audience="https://mcp.acme.com", tenant_id="acme", connector_id="conn_1")
     # -> Actor(sub, idp, confirmed, tool, jti, support_session_id); raises BusymateActorError(reason)
 """
-import base64, json, threading, time, urllib.request
+import base64, json, re, threading, time, urllib.request
 from dataclasses import dataclass
 from typing import Optional
 
@@ -30,6 +30,15 @@ class Actor:
     tool: str
     jti: str
     support_session_id: Optional[str] = None
+    # Your account context as your launch token signed it; None when absent. Check host_account belongs to sub.
+    host_account: Optional[str] = None
+    host_env: Optional[str] = None
+    host_user: Optional[str] = None
+
+
+# host_account / host_user: the WHOLE value (fullmatch; `$` would accept a trailing newline).
+_HOST_ID = re.compile(r"[A-Za-z0-9:_-]{1,120}")
+_HOST_ENVS = ("live", "sandbox")
 
 
 def _b64d(s: str) -> bytes:
@@ -172,11 +181,27 @@ def verify_busymate_actor(headers_or_token, *, audience, tenant_id, connector_id
         raise BusymateActorError("not_identified")
     if tool is not None and p.get("tool") != tool:
         raise BusymateActorError("tool_mismatch")
+    host = {}
+    for claim in ("host_account", "host_env", "host_user"):
+        if claim not in p:
+            continue
+        v = p[claim]
+        ok = isinstance(v, str) and (v in _HOST_ENVS if claim == "host_env" else _HOST_ID.fullmatch(v) is not None)
+        if not ok:
+            raise BusymateActorError("bad_host_context")
+        host[claim] = v
     if not (replay_cache or _default_cache).add(jti, int(exp), now):
         raise BusymateActorError("replay")
     return Actor(sub=sub, idp=p.get("idp") if isinstance(p.get("idp"), str) else "", confirmed=p.get("confirmed") is True,
                  tool=p.get("tool") if isinstance(p.get("tool"), str) else "", jti=jti,
-                 support_session_id=p.get("support_session_id") if isinstance(p.get("support_session_id"), str) else None)
+                 support_session_id=p.get("support_session_id") if isinstance(p.get("support_session_id"), str) else None,
+                 **host)
+
+
+def require_host_context(actor: Actor) -> None:
+    """For a host that sends its account context on every launch: raise when host_account or host_env is missing."""
+    if not actor.host_account or not actor.host_env:
+        raise BusymateActorError("host_context_required")
 
 
 def require_confirmed(actor: Actor, is_write_tool: bool = True) -> None:

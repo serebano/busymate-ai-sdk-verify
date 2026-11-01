@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"math/big"
 	"net/http"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -42,7 +43,12 @@ type Actor struct {
 	Sub, IDP, Tool, JTI string
 	Confirmed           bool
 	SupportSessionID    string
+	// Your account context as your launch token signed it; "" when absent. Check HostAccount belongs to Sub.
+	HostAccount, HostEnv, HostUser string
 }
+
+// host_account / host_user: the WHOLE value (\A...\z).
+var hostID = regexp.MustCompile(`\A[A-Za-z0-9:_-]{1,120}\z`)
 
 type Options struct {
 	Audience, TenantID, ConnectorID string
@@ -291,6 +297,19 @@ func (v *Verifier) VerifyToken(token string) (*Actor, error) {
 	if v.Tool != "" && p["tool"] != v.Tool {
 		return nil, fail("tool_mismatch")
 	}
+	host := map[string]string{}
+	for _, claim := range []string{"host_account", "host_env", "host_user"} {
+		raw, present := p[claim]
+		if !present {
+			continue
+		}
+		s, isStr := raw.(string)
+		ok := isStr && ((claim == "host_env" && (s == "live" || s == "sandbox")) || (claim != "host_env" && hostID.MatchString(s)))
+		if !ok {
+			return nil, fail("bad_host_context")
+		}
+		host[claim] = s
+	}
 	if !v.Replay.Add(jti, int64(exp), now) {
 		return nil, fail("replay")
 	}
@@ -298,7 +317,16 @@ func (v *Verifier) VerifyToken(token string) (*Actor, error) {
 	a.IDP, _ = p["idp"].(string)
 	a.Tool, _ = p["tool"].(string)
 	a.SupportSessionID, _ = p["support_session_id"].(string)
+	a.HostAccount, a.HostEnv, a.HostUser = host["host_account"], host["host_env"], host["host_user"]
 	return a, nil
+}
+
+// RequireHostContext: for a host that sends its account context on every launch.
+func RequireHostContext(a *Actor) error {
+	if a.HostAccount == "" || a.HostEnv == "" {
+		return fail("host_context_required")
+	}
+	return nil
 }
 
 // RequireConfirmed: money-moving and write tools need the customer's in-chat confirmation.

@@ -1,4 +1,4 @@
-# Busymate AI verify — 0.1.2
+# Busymate AI verify — 0.2.0
 
 Official customer-side verification of the Busymate AI **connector actor token** (`bmai.actor/3`, contract `bmai-identity` 2.0.0), plus a CLI that checks your whole identity integration from a clean machine.
 
@@ -20,7 +20,7 @@ npm install @busymate/ai-verify
 npx @busymate/identity-check --help
 ```
 
-The same tarballs are attached to each [GitHub release](https://github.com/serebano/busymate-ai-sdk-verify/releases) with `SHA256SUMS` (for example `npm install https://github.com/serebano/busymate-ai-sdk-verify/releases/download/0.1.2/busymate-ai-verify-0.1.2.tgz`). Python, PHP and Go: copy the file from `busymate-ai-verify-snippets-<version>.tgz` (or this repo) into your project.
+The same tarballs are attached to each [GitHub release](https://github.com/serebano/busymate-ai-sdk-verify/releases) with `SHA256SUMS` (for example `npm install https://github.com/serebano/busymate-ai-sdk-verify/releases/download/0.2.0/busymate-ai-verify-0.2.0.tgz`). Python, PHP and Go: copy the file from `busymate-ai-verify-snippets-<version>.tgz` (or this repo) into your project.
 
 ## Verify in your MCP server (Node / Deno)
 
@@ -49,9 +49,10 @@ try {
 - Enforces: `alg=ES256`, `typ`, `kid` in the JWKS, `iss=https://busymate.ai`, exact `aud`, `tenant_id`, `connector_id`, optional `idp`, `actor_kind=identified`, `exp - iat <= 120`, clock skew <= 10 s, `jti` replay and (when given) `tool`.
 - Keys come from `https://busymate.ai/.well-known/bmai-actor-jwks.json` (cached 10 min, refetched once on an unknown `kid`, at most every 30 s).
 - The replay cache is in memory by default. Behind several instances, pass `replayCache: { add(jti, exp, now) }` backed by Redis `SET NX EX`.
+- **Account context.** When your launch token carries `host_account`, `host_env` (`live` | `sandbox`) or `host_user`, every actor token echoes them byte-for-byte. They come back as `actor.hostAccount`, `actor.hostEnv` and `actor.hostUser`, and are absent when the launch had none. A malformed value is refused (`bad_host_context`) before the `jti` is consumed. Check that `hostAccount` belongs to `sub` before you use it. `requireHostContext(actor)` throws `host_context_required` when you always send the context and a token lacks it. Python `actor.host_account`, PHP `$actor['host_account']`, Go `actor.HostAccount`.
 - Serve `GET /api/bmai/status` returning `{"actorVerifier": true, "actor": 3}` (exported as `STATUS_BODY`) so the Console shows "connected".
 
-Reason codes: `missing_token`, `malformed`, `bad_alg`, `bad_typ`, `unknown_kid`, `bad_signature`, `bad_issuer`, `bad_audience`, `missing_claim`, `expired`, `not_yet_valid`, `lifetime_too_long`, `tenant_mismatch`, `connector_mismatch`, `idp_mismatch`, `not_identified`, `tool_mismatch`, `replay`, `jwks_unavailable`, `confirmation_required`. Log the reason; show the caller nothing but 401.
+Reason codes: `missing_token`, `malformed`, `bad_alg`, `bad_typ`, `unknown_kid`, `bad_signature`, `bad_issuer`, `bad_audience`, `missing_claim`, `expired`, `not_yet_valid`, `lifetime_too_long`, `tenant_mismatch`, `connector_mismatch`, `idp_mismatch`, `not_identified`, `tool_mismatch`, `bad_host_context`, `replay`, `jwks_unavailable`, `confirmation_required`, `host_context_required`. Log the reason; show the caller nothing but 401.
 
 Deno: `import { verifyBusymateActor } from "npm:@busymate/ai-verify"` (or the release tarball). CI runs the vectors under Deno.
 
