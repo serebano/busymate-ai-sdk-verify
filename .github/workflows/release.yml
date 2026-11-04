@@ -1,16 +1,18 @@
 name: Release
 # Push a tag equal to the package version (e.g. 0.1.0) after sdk-check is green on main.
-# Creates the GitHub release with tarballs and SHA256SUMS, then publishes to npm with provenance.
-# Auth: npm trusted publishing (GitHub OIDC) only, configured on npmjs.com for both packages. No npm token.
+# Creates the GitHub release with tarballs and SHA256SUMS, then publishes to npm.
+# Runs on our k3s runner ci-sdk-verify, never GitHub-hosted (owner order 2026-11-04). npm trusted publishing and
+# --provenance only work on GitHub-hosted runners (npm refuses RUNNER_ENVIRONMENT=self-hosted), so the publish uses
+# the repository secret NPM_TOKEN (a granular automation token for @busymate/ai-verify and @busymate/identity-check).
+# Without it the GitHub release is still made and the job fails at the npm step.
 on:
   push:
     tags: ["[0-9]*"]
 permissions:
   contents: write
-  id-token: write
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: ci-sdk-verify
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -38,12 +40,15 @@ jobs:
           SHA-256:
           $(cat release/SHA256SUMS)"
           fi
-      - name: Publish to npm with provenance
+      - name: Publish to npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          # Trusted publishing: npm exchanges the job's OIDC token (id-token: write); setup-node's placeholder token must not be used.
-          unset NODE_AUTH_TOKEN
-          npm install -g npm@^11.5.1 --no-audit --no-fund
+          if [ -z "$NODE_AUTH_TOKEN" ]; then
+            echo "::error::NPM_TOKEN is not set. Trusted publishing needs a GitHub-hosted runner, which this repo no longer uses; add a granular npm automation token as the NPM_TOKEN secret."
+            exit 1
+          fi
           for ws in @busymate/ai-verify @busymate/identity-check; do
             v=$(node -p "require('./packages/${ws#@busymate/}/package.json').version")
-            if npm view "$ws@$v" version >/dev/null 2>&1; then echo "$ws@$v already on npm"; else npm publish -w "$ws" --provenance --access public; fi
+            if npm view "$ws@$v" version >/dev/null 2>&1; then echo "$ws@$v already on npm"; else npm publish -w "$ws" --access public; fi
           done
