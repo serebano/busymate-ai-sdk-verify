@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- CI and release run on our own k3s runner (`ci-sdk-verify`), never GitHub-hosted (owner order 2026-11-04). npm trusted publishing and provenance need a GitHub-hosted runner, so `release.yml` publishes with the `NPM_TOKEN` secret again, without provenance. PHP checks use static-php.dev CLI builds 8.1.34 / 8.3.32. No package change.
+
 ## 0.2.0
 
 - Account context (identity contract `host_account` / `host_env` / `host_user`, busymate-ai-src#3342/#3353): `verifyBusymateActor` returns `hostAccount`, `hostEnv` (`live` | `sandbox`) and `hostUser` when the token carries them, and omits them when it does not. A malformed value is refused with the new reason `bad_host_context`, before replay, so the `jti` stays usable. The rule is the whole value against `^[A-Za-z0-9:_-]{1,120}$`, or the `host_env` enum.

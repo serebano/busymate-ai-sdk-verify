@@ -100,6 +100,6 @@ node scripts/gen-vectors.mjs                           # regenerate the local ve
 node scripts/sync-vectors.mjs --check
 ```
 
-Releases: push a tag equal to the package version after `sdk-check` is green on `main`. `release.yml` creates the GitHub release with tarballs and `SHA256SUMS`, then publishes both packages to npm with provenance.
+Releases: push a tag equal to the package version after `sdk-check` is green on `main`. `release.yml` creates the GitHub release with tarballs and `SHA256SUMS`, then publishes both packages to npm with the `NPM_TOKEN` secret. CI runs only on our own runners (k3s `ci-sdk-verify`), never GitHub-hosted; npm provenance and trusted publishing need a GitHub-hosted runner, so releases since 2026-11-04 carry no provenance statement.
 
 Status: pre-1.0. The token format is fixed by the contract; the package API may still change in 0.x.
