@@ -127,7 +127,7 @@ jobs:
         with: { name: release, path: release/ }
 
   sdk-check:
-    if: always()
+    if: ${{ always() && !cancelled() }}  # a cancelled run must not turn the gate red
     needs: [node, deno, python, php, go, vectors, pack]
     runs-on: ci-sdk-verify
     timeout-minutes: 30
