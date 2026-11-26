@@ -60,6 +60,7 @@ type Options struct {
 }
 
 // ReplayCache returns true when jti is new. MemoryReplay is the default; use Redis SET NX EX across instances.
+// exp is the last second the token can still verify (its exp claim plus the accepted clock skew).
 type ReplayCache interface {
 	Add(jti string, exp, now int64) bool
 }
@@ -310,7 +311,8 @@ func (v *Verifier) VerifyToken(token string) (*Actor, error) {
 		}
 		host[claim] = s
 	}
-	if !v.Replay.Add(jti, int64(exp), now) {
+	// Keep the jti for as long as the token can still verify (exp + skew), or it could be replayed in that gap.
+	if !v.Replay.Add(jti, int64(exp)+skew, now) {
 		return nil, fail("replay")
 	}
 	a := &Actor{Sub: sub, JTI: jti, Confirmed: p["confirmed"] == true}

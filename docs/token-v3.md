@@ -20,7 +20,7 @@ Source of truth: the `bmai-identity` 2.0.0 identity contract. This page restates
 | 14 | `idp` equals yours (only when you configure it) | `idp_mismatch` |
 | 15 | `actor_kind == "identified"` | `not_identified` |
 | 16 | `tool` equals the called tool (only when you pass it) | `tool_mismatch` |
-| 17 | `jti` not seen before until its `exp`. Recorded only after steps 1-16 pass | `replay` |
+| 17 | `jti` not seen before until `exp + 10` (as long as step 10 can still pass). Recorded only after steps 1-16 pass | `replay` |
 
 Other reasons: `jwks_unavailable` (the JWKS could not be fetched), `confirmation_required` (`requireConfirmed`).
 

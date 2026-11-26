@@ -19,7 +19,7 @@ final class BusymateVerify
     private const TYP = 'bmai-actor+jwt';
     private const SKEW = 10;
     private const MAX_LIFETIME = 120;
-    /** @var array<string,int> jti => exp. Per process; use APCu/Redis for shared replay protection. */
+    /** @var array<string,int> jti => retain-until (exp + SKEW). Per process; use APCu/Redis for shared replay protection. */
     private static array $seen = [];
     private static array $jwks = ['url' => null, 'keys' => [], 'at' => 0, 'refetch' => 0];
 
@@ -160,7 +160,8 @@ final class BusymateVerify
         if (isset($o['seen'])) $store = &$o['seen'];
         foreach ($store as $k => $e) if ($e < $now) unset($store[$k]);
         if (isset($store[$jti])) throw new BusymateActorError('replay');
-        $store[$jti] = (int)$exp;
+        // Keep the jti for as long as the token can still verify (exp + SKEW), or it could be replayed in that gap.
+        $store[$jti] = (int)$exp + self::SKEW;
         return [
             'sub' => $sub, 'idp' => is_string($p['idp'] ?? null) ? $p['idp'] : '', 'confirmed' => ($p['confirmed'] ?? null) === true,
             'tool' => is_string($p['tool'] ?? null) ? $p['tool'] : '', 'jti' => $jti,

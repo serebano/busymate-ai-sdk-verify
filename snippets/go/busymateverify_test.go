@@ -1,10 +1,12 @@
 package busymateverify
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"net/http"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -85,5 +87,50 @@ func TestVectors(t *testing.T) {
 	}
 	if err := RequireConfirmed(&Actor{}, true); err == nil {
 		t.Fatal("requireConfirmed")
+	}
+}
+
+// A jti stays remembered until exp + skew, so a replay at exp+5s is refused.
+func TestReplayAtExpPlus5(t *testing.T) {
+	raw, err := os.ReadFile("../../vectors/actor-v3.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var V vectors
+	if err := json.Unmarshal(raw, &V); err != nil {
+		t.Fatal(err)
+	}
+	var token string
+	for _, c := range V.Cases {
+		if c.Name == "replay" {
+			token = c.Calls[0].Headers["X-Bmai-Actor"]
+		}
+	}
+	parts := strings.Split(token, ".")
+	body, err := base64.RawURLEncoding.DecodeString(parts[1])
+	if err != nil {
+		t.Fatal(err)
+	}
+	var claims struct{ Exp int64 }
+	if err := json.Unmarshal(body, &claims); err != nil {
+		t.Fatal(err)
+	}
+	cache := &MemoryReplay{}
+	s := func(n string) string { x, _ := V.Config[n].(string); return x }
+	at := func(now int64) error {
+		v := New(Options{Audience: s("audience"), TenantID: s("tenant_id"), ConnectorID: s("connector_id"),
+			JWKS: V.JWKS, Now: func() int64 { return now }})
+		v.Replay = cache
+		h := http.Header{}
+		h.Set("X-Bmai-Actor", token)
+		_, err := v.Verify(h)
+		return err
+	}
+	if err := at(claims.Exp - 5); err != nil {
+		t.Fatalf("first use: %v", err)
+	}
+	var be *Error
+	if err := at(claims.Exp + 5); !errors.As(err, &be) || be.Reason != "replay" {
+		t.Fatalf("replay at exp+5: want replay, got %v", err)
 	}
 }

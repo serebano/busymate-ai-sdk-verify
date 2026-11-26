@@ -1,7 +1,8 @@
 # Changelog
 
-## Unreleased
+## 0.2.1
 
+- **Security: replay window closed (ECO-02).** The verifier accepts a token until `exp + 10` s (clock skew), but the replay cache forgot its `jti` at the raw `exp`, so the same token could be replayed in those last 10 seconds. Every verifier now hands the replay cache `exp + 10` (the same skew constant the expiry check uses): TypeScript (`ReplayCache.add(jti, exp + SKEW, now)`), Python, PHP and Go. A custom cache (Redis `SET NX EX`) that derives its TTL from the `exp` argument is covered without changes. New tests in each language: a replay at `exp + 5` s is refused. `docs/token-v3.md` step 17 says `exp + 10`. `@busymate/identity-check` has no code change; the version moves with the release.
 - CI and release run on our own k3s runner (`ci-sdk-verify`), never GitHub-hosted (owner order 2026-11-04). npm trusted publishing and provenance need a GitHub-hosted runner, so `release.yml` publishes with the `NPM_TOKEN` secret again, without provenance. PHP checks use static-php.dev CLI builds 8.1.34 / 8.3.32. No package change.
 
 ## 0.2.0

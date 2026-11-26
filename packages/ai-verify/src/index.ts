@@ -45,7 +45,10 @@ const HOST_ID = /^[A-Za-z0-9:_-]{1,120}$/;
 const HOST_ENVS = ["live", "sandbox"];
 
 export interface ReplayCache {
-  /** Remember `jti` until `exp` (epoch seconds). Return true when new, false when already seen. May be async (Redis SET NX). */
+  /**
+   * Remember `jti` until `exp` (epoch seconds). Return true when new, false when already seen. May be async (Redis SET NX).
+   * The verifier passes the token's `exp` plus the clock skew it accepts, the last second the token can still verify.
+   */
   add(jti: string, exp: number, now: number): boolean | Promise<boolean>;
 }
 
@@ -200,7 +203,8 @@ export async function verifyBusymateActor(input: VerifyInput, options: VerifyOpt
     if (!ok) throw new BusymateActorError("bad_host_context");
     (host as Record<string, string>)[field] = v as string;
   }
-  if (!(await (options.replayCache ?? defaultReplay).add(jti, exp, nowS))) throw new BusymateActorError("replay");
+  // Keep the jti for as long as the token can still verify (exp + skew), or it could be replayed in that gap.
+  if (!(await (options.replayCache ?? defaultReplay).add(jti, exp + SKEW, nowS))) throw new BusymateActorError("replay");
   return {
     sub, idp: typeof p.idp === "string" ? p.idp : "", confirmed: p.confirmed === true, tool: typeof p.tool === "string" ? p.tool : "",
     jti, supportSessionId: typeof p.support_session_id === "string" ? p.support_session_id : undefined,
