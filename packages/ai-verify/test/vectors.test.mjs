@@ -43,6 +43,18 @@ test("accepts a Fetch Headers object, a request-like and a raw token", async () 
   assert.equal(actorTokenFrom({}), null);
 });
 
+test("replay: a jti stays remembered until exp + skew (replay at exp+5s is refused)", async () => {
+  const [first] = V.cases.find((x) => x.name === "replay").calls;
+  const exp = JSON.parse(Buffer.from(first.headers["X-Bmai-Actor"].split(".")[1], "base64url").toString()).exp;
+  const cache = new MemoryReplayCache();
+  await verifyBusymateActor(first.headers, { ...optionsFor({}), replayCache: cache, now: exp - 5 });
+  await assert.rejects(verifyBusymateActor(first.headers, { ...optionsFor({}), replayCache: cache, now: exp + 5 }), (e) => e.reason === "replay");
+  // A custom cache is told to keep the jti until exp + 10.
+  const seen = [];
+  await verifyBusymateActor(first.headers, { ...optionsFor({}), replayCache: { add: (j, until) => (seen.push(until), true) }, now: exp - 5 });
+  assert.deepEqual(seen, [exp + 10]);
+});
+
 test("requireConfirmed", () => {
   requireConfirmed({ sub: "a", idp: "i", confirmed: true, tool: "t", jti: "j" });
   requireConfirmed({ sub: "a", idp: "i", confirmed: false, tool: "t", jti: "j" }, false);

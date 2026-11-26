@@ -46,7 +46,7 @@ def _b64d(s: str) -> bytes:
 
 
 class MemoryReplayCache:
-    """jti -> exp. Use a shared store (Redis SET NX EX) when you run several instances."""
+    """jti -> retain-until (exp + SKEW). Use a shared store (Redis SET NX EX) when you run several instances."""
 
     def __init__(self):
         self._seen, self._lock = {}, threading.Lock()
@@ -190,7 +190,8 @@ def verify_busymate_actor(headers_or_token, *, audience, tenant_id, connector_id
         if not ok:
             raise BusymateActorError("bad_host_context")
         host[claim] = v
-    if not (replay_cache or _default_cache).add(jti, int(exp), now):
+    # Keep the jti for as long as the token can still verify (exp + SKEW), or it could be replayed in that gap.
+    if not (replay_cache or _default_cache).add(jti, int(exp) + SKEW, now):
         raise BusymateActorError("replay")
     return Actor(sub=sub, idp=p.get("idp") if isinstance(p.get("idp"), str) else "", confirmed=p.get("confirmed") is True,
                  tool=p.get("tool") if isinstance(p.get("tool"), str) else "", jti=jti,

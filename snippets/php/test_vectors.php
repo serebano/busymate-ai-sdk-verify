@@ -31,6 +31,20 @@ foreach ($V['cases'] as $case) {
     echo ($err === null ? "ok   " : "FAIL ") . $case['name'] . ($err ? " ($err)" : '') . "\n";
     if ($err !== null) $fail++;
 }
+// Replay window: the jti stays remembered until exp + skew, so a replay at exp+5s is refused.
+$n++;
+$rc = null; foreach ($V['cases'] as $c) if ($c['name'] === 'replay') $rc = $c['calls'][0];
+$exp = json_decode(base64_decode(strtr(explode('.', $rc['headers']['X-Bmai-Actor'])[1], '-_', '+/')), true)['exp'];
+$seen = []; $err = null;
+$ro = fn(int $now) => ['audience' => $V['config']['audience'], 'tenant_id' => $V['config']['tenant_id'], 'connector_id' => $V['config']['connector_id'], 'jwks' => $V['jwks'], 'now' => $now];
+try {
+    $o = $ro($exp - 5); $o['seen'] = &$seen; BusymateVerify::verify($rc['headers'], $o); unset($o);
+    $o = $ro($exp + 5); $o['seen'] = &$seen; BusymateVerify::verify($rc['headers'], $o); unset($o);
+    $err = 'replay at exp+5 accepted';
+} catch (BusymateActorError $x) { if ($x->reason !== 'replay') $err = "expected replay, got {$x->reason}"; }
+echo ($err === null ? "ok   " : "FAIL ") . "replay_at_exp_plus_5" . ($err ? " ($err)" : '') . "\n";
+if ($err !== null) $fail++;
+
 try { BusymateVerify::requireConfirmed(['confirmed' => false]); $fail++; echo "FAIL requireConfirmed\n"; } catch (BusymateActorError $x) { if ($x->reason !== 'confirmation_required') $fail++; }
 echo "$n cases, $fail failed\n";
 exit($fail ? 1 : 0);
