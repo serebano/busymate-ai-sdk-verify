@@ -64,7 +64,7 @@ actor = verify_busymate_actor(request.headers, audience="https://mcp.acme.com", 
 ```
 
 ```php
-require 'BusymateVerify.php';                                                              // PHP >= 8.1, ext-openssl
+require 'BusymateVerify.php';                                                              // PHP >= 8.3, ext-openssl
 $actor = BusymateVerify::verify(getallheaders(), ['audience' => 'https://mcp.acme.com', 'tenant_id' => 'acme', 'connector_id' => 'conn_1']);
 ```
 
@@ -94,7 +94,7 @@ Try it without a tenant: `node demo/demo-tenant.mjs 8787` starts a demo tenant (
 npm install && npm run typecheck && npm test           # Node
 npm run test:deno -w @busymate/ai-verify               # Deno
 python3 -m unittest -q test_vectors                    # in snippets/python (needs cryptography)
-php snippets/php/test_vectors.php                      # PHP >= 8.1
+php snippets/php/test_vectors.php                      # PHP >= 8.3
 go test ./...                                          # in snippets/go
 node scripts/gen-vectors.mjs                           # regenerate the local vector set (while no contract vectors are vendored)
 node scripts/sync-vectors.mjs --check

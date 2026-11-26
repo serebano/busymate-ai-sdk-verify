@@ -19,8 +19,8 @@ jobs:
       matrix:
         node: ["18", "20", "22"]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with: { node-version: "${{ matrix.node }}" }
       - run: npm install --no-audit --no-fund
       - run: npm run typecheck
@@ -30,10 +30,10 @@ jobs:
     runs-on: ci-sdk-verify
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with: { node-version: "22" }
-      - uses: denoland/setup-deno@v2
+      - uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
         with: { deno-version: v2.x }
       - run: npm install --no-audit --no-fund
       - run: npm run test:deno -w @busymate/ai-verify
@@ -45,10 +45,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python: ["3.9", "3.12"]
+        python: ["3.11", "3.14"]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with: { python-version: "${{ matrix.python }}" }
       - run: pip install cryptography
       - run: python -m unittest -q test_vectors
@@ -62,10 +62,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { php: "8.1", build: "8.1.34" }
           - { php: "8.3", build: "8.3.32" }
+          - { php: "8.5", build: "8.5.8" }
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: PHP ${{ matrix.build }} CLI (static build, openssl built in)
         env:
           PHP_BUILD: ${{ matrix.build }}
@@ -83,10 +83,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        go: ["1.21", "stable"]
+        go: ["1.26", "stable"]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
         with: { go-version: "${{ matrix.go }}" }
       - run: go vet ./... && go test ./...
         working-directory: snippets/go
@@ -96,8 +96,8 @@ jobs:
     runs-on: ci-sdk-verify
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with: { node-version: "22" }
       - name: Vectors are not hand-edited and match the contract
         run: node scripts/sync-vectors.mjs --check
@@ -109,8 +109,8 @@ jobs:
     runs-on: ci-sdk-verify
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with: { node-version: "22" }
       - run: npm install --no-audit --no-fund
       - run: npm run build
@@ -123,7 +123,7 @@ jobs:
           npm init -y >/dev/null
           npm install "$GITHUB_WORKSPACE"/release/busymate-ai-verify-[0-9]*.tgz
           node -e "import('@busymate/ai-verify').then(m=>{ if(typeof m.verifyBusymateActor!=='function') process.exit(1); console.log('ai-verify imports ok') })"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with: { name: release, path: release/ }
 
   sdk-check:
@@ -132,7 +132,7 @@ jobs:
     runs-on: ci-sdk-verify
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: No GitHub-hosted runners (runs-on lint)
         run: python3 .github/runs-on-lint.py
       - name: All SDK checks passed
