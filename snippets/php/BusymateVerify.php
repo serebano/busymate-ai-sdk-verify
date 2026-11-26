@@ -19,6 +19,8 @@ final class BusymateVerify
     private const TYP = 'bmai-actor+jwt';
     private const SKEW = 10;
     private const MAX_LIFETIME = 120;
+    /** Replay store cap: when full of live entries a new jti is refused (replay_cache_capacity), never evicted. */
+    public const MAX_SEEN = 50000;
     /** @var array<string,int> jti => retain-until (exp + SKEW). Per process; use APCu/Redis for shared replay protection. */
     private static array $seen = [];
     private static array $jwks = ['url' => null, 'keys' => [], 'at' => 0, 'refetch' => 0];
@@ -160,6 +162,7 @@ final class BusymateVerify
         if (isset($o['seen'])) $store = &$o['seen'];
         foreach ($store as $k => $e) if ($e < $now) unset($store[$k]);
         if (isset($store[$jti])) throw new BusymateActorError('replay');
+        if (count($store) >= (int)($o['max_seen'] ?? self::MAX_SEEN)) throw new BusymateActorError('replay_cache_capacity');
         // Keep the jti for as long as the token can still verify (exp + SKEW), or it could be replayed in that gap.
         $store[$jti] = (int)$exp + self::SKEW;
         return [

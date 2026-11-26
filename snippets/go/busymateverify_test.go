@@ -134,3 +134,48 @@ func TestReplayAtExpPlus5(t *testing.T) {
 		t.Fatalf("replay at exp+5: want replay, got %v", err)
 	}
 }
+
+// A full MemoryReplay refuses a new jti (replay_cache_capacity) and never evicts a live one.
+func TestReplayCacheCapacityFailsClosed(t *testing.T) {
+	raw, err := os.ReadFile("../../vectors/actor-v3.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var V vectors
+	if err := json.Unmarshal(raw, &V); err != nil {
+		t.Fatal(err)
+	}
+	hdr := func(name string) string {
+		for _, c := range V.Cases {
+			if c.Name == name {
+				return c.Calls[0].Headers["X-Bmai-Actor"]
+			}
+		}
+		return ""
+	}
+	cache := &MemoryReplay{Max: 1}
+	s := func(n string) string { x, _ := V.Config[n].(string); return x }
+	try := func(token string) string {
+		v := New(Options{Audience: s("audience"), TenantID: s("tenant_id"), ConnectorID: s("connector_id"),
+			JWKS: V.JWKS, Now: func() int64 { return V.Now }})
+		v.Replay = cache
+		h := http.Header{}
+		h.Set("X-Bmai-Actor", token)
+		if _, err := v.Verify(h); err != nil {
+			var be *Error
+			if errors.As(err, &be) {
+				return be.Reason
+			}
+			return err.Error()
+		}
+		return "ok"
+	}
+	got := []string{try(hdr("valid_x_header")), try(hdr("valid_confirmed")), try(hdr("valid_x_header"))}
+	if got[0] != "ok" || got[1] != "replay_cache_capacity" || got[2] != "replay" {
+		t.Fatalf("got %v", got)
+	}
+	c := &MemoryReplay{Max: 1}
+	if !c.Add("x", 100, 50) || !c.Add("y", 200, 150) {
+		t.Fatal("an expired entry must still be evicted")
+	}
+}

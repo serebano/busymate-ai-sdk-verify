@@ -9,7 +9,7 @@ export const ACTOR_TYP = "bmai-actor+jwt";
 export type VerifyReason =
   | "missing_token" | "malformed" | "bad_alg" | "bad_typ" | "unknown_kid" | "bad_signature" | "bad_issuer"
   | "bad_audience" | "missing_claim" | "expired" | "not_yet_valid" | "lifetime_too_long" | "tenant_mismatch"
-  | "connector_mismatch" | "idp_mismatch" | "not_identified" | "tool_mismatch" | "bad_host_context" | "replay" | "jwks_unavailable"
+  | "connector_mismatch" | "idp_mismatch" | "not_identified" | "tool_mismatch" | "bad_host_context" | "replay" | "replay_cache_capacity" | "jwks_unavailable"
   | "confirmation_required" | "host_context_required";
 
 /** Thrown for every refusal. Answer 401 with `WWW-Authenticate: Bearer error="invalid_token"` and do not fall through to another user. */
@@ -78,14 +78,19 @@ const MAX_LIFETIME = 120;
 const JWKS_TTL_MS = 600_000;
 const JWKS_COOLDOWN_MS = 30_000;
 
-/** In-memory replay cache, bounded. Use a shared cache (Redis) when you run several instances. */
+/**
+ * In-memory replay cache, bounded. Use a shared cache (Redis) when you run several instances.
+ * Fails closed: when it is full of entries that can still verify, a new jti is refused with
+ * `replay_cache_capacity` instead of evicting one (an evicted live jti could be replayed).
+ */
 export class MemoryReplayCache implements ReplayCache {
   private seen = new Map<string, number>();
   constructor(private max = 50_000) {}
   add(jti: string, exp: number, now: number): boolean {
     if (this.seen.size >= this.max / 2) for (const [k, e] of this.seen) if (e < now) this.seen.delete(k);
-    if (this.seen.has(jti) && (this.seen.get(jti) as number) >= now) return false;
-    if (this.seen.size >= this.max) this.seen.delete(this.seen.keys().next().value as string);
+    const until = this.seen.get(jti);
+    if (until !== undefined && until >= now) return false;
+    if (until === undefined && this.seen.size >= this.max) throw new BusymateActorError("replay_cache_capacity");
     this.seen.set(jti, exp);
     return true;
   }
