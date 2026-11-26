@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-// Verify the Busymate AI connector actor token (bmai.actor/3, ES256 + JWKS). PHP >= 8.1, ext-openssl, no Composer packages.
+// Verify the Busymate AI connector actor token (bmai.actor/3, ES256 + JWKS). PHP >= 8.3, ext-openssl, no Composer packages.
 //   $actor = BusymateVerify::verify(getallheaders(), ['audience' => 'https://mcp.acme.com', 'tenant_id' => 'acme', 'connector_id' => 'conn_1']);
 //   // -> ['sub','idp','confirmed','tool','jti','support_session_id'] ; throws BusymateActorError with ->reason
 
