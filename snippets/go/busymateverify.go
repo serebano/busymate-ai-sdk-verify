@@ -65,12 +65,29 @@ type ReplayCache interface {
 	Add(jti string, exp, now int64) bool
 }
 
+// ReplayCacheErr is an optional ReplayCache extension that can refuse a jti with an error
+// (MemoryReplay returns reason "replay_cache_capacity" when full). Checked before Add.
+type ReplayCacheErr interface {
+	AddErr(jti string, exp, now int64) (bool, error)
+}
+
+// DefaultReplayMax caps MemoryReplay when Max is 0.
+const DefaultReplayMax = 50000
+
+// MemoryReplay fails closed: when it is full of entries that can still verify, a new jti is
+// refused (replay_cache_capacity) instead of evicting one (an evicted live jti could be replayed).
 type MemoryReplay struct {
+	Max  int
 	mu   sync.Mutex
 	seen map[string]int64
 }
 
 func (m *MemoryReplay) Add(jti string, exp, now int64) bool {
+	ok, err := m.AddErr(jti, exp, now)
+	return ok && err == nil
+}
+
+func (m *MemoryReplay) AddErr(jti string, exp, now int64) (bool, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	if m.seen == nil {
@@ -82,10 +99,17 @@ func (m *MemoryReplay) Add(jti string, exp, now int64) bool {
 		}
 	}
 	if _, ok := m.seen[jti]; ok {
-		return false
+		return false, nil
+	}
+	limit := m.Max
+	if limit <= 0 {
+		limit = DefaultReplayMax
+	}
+	if len(m.seen) >= limit {
+		return false, fail("replay_cache_capacity")
 	}
 	m.seen[jti] = exp
-	return true
+	return true, nil
 }
 
 type Verifier struct {
@@ -312,7 +336,15 @@ func (v *Verifier) VerifyToken(token string) (*Actor, error) {
 		host[claim] = s
 	}
 	// Keep the jti for as long as the token can still verify (exp + skew), or it could be replayed in that gap.
-	if !v.Replay.Add(jti, int64(exp)+skew, now) {
+	if re, ok := v.Replay.(ReplayCacheErr); ok {
+		fresh, err := re.AddErr(jti, int64(exp)+skew, now)
+		if err != nil {
+			return nil, err
+		}
+		if !fresh {
+			return nil, fail("replay")
+		}
+	} else if !v.Replay.Add(jti, int64(exp)+skew, now) {
 		return nil, fail("replay")
 	}
 	a := &Actor{Sub: sub, JTI: jti, Confirmed: p["confirmed"] == true}

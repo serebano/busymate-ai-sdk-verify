@@ -48,8 +48,8 @@ def _b64d(s: str) -> bytes:
 class MemoryReplayCache:
     """jti -> retain-until (exp + SKEW). Use a shared store (Redis SET NX EX) when you run several instances."""
 
-    def __init__(self):
-        self._seen, self._lock = {}, threading.Lock()
+    def __init__(self, max_entries: int = 50_000):
+        self._seen, self._lock, self._max = {}, threading.Lock(), max_entries
 
     def add(self, jti: str, exp: int, now: int) -> bool:
         with self._lock:
@@ -57,6 +57,9 @@ class MemoryReplayCache:
                 del self._seen[k]
             if jti in self._seen:
                 return False
+            # Fail closed: never evict a jti that can still verify; refuse the new one instead.
+            if len(self._seen) >= self._max:
+                raise BusymateActorError("replay_cache_capacity")
             self._seen[jti] = exp
             return True
 

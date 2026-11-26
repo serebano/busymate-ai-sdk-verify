@@ -51,6 +51,24 @@ class ReplayWindow(unittest.TestCase):
         self.assertEqual(cm.exception.reason, "replay")
 
 
+class ReplayCapacity(unittest.TestCase):
+    def test_full_cache_fails_closed(self):
+        hdr = lambda n: next(c for c in V["cases"] if c["name"] == n)["calls"][0]["headers"]
+        cache, cfg = MemoryReplayCache(max_entries=1), V["config"]
+        go = lambda h: verify_busymate_actor(h, audience=cfg["audience"], tenant_id=cfg["tenant_id"],
+                                             connector_id=cfg["connector_id"], jwks=V["jwks"], now=V["now"], replay_cache=cache)
+        go(hdr("valid_x_header"))
+        with self.assertRaises(BusymateActorError) as cm:
+            go(hdr("valid_confirmed"))
+        self.assertEqual(cm.exception.reason, "replay_cache_capacity")
+        with self.assertRaises(BusymateActorError) as cm:
+            go(hdr("valid_x_header"))
+        self.assertEqual(cm.exception.reason, "replay")
+        c = MemoryReplayCache(max_entries=1)
+        self.assertTrue(c.add("x", 100, 50))
+        self.assertTrue(c.add("y", 200, 150))  # x expired: evicted
+
+
 class Helpers(unittest.TestCase):
     def test_require_confirmed(self):
         require_confirmed(Actor("a", "i", True, "t", "j"))

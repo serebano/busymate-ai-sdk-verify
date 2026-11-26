@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.2
+
+- **Security: the in-memory replay cache fails closed when full (ECO-02 follow-up).** The TypeScript `MemoryReplayCache` evicted its oldest entry when full, even one still inside its `exp + 10` s window, so flooding it with valid tokens let a replay through. It now refuses the new token with the new reason `replay_cache_capacity` instead; expired entries are still swept. Python (`MemoryReplayCache(max_entries=50_000)`), PHP (`MAX_SEEN`, option `max_seen`) and Go (`MemoryReplay{Max}`, optional `ReplayCacheErr`) had no cap (unbounded); they now have the same 50,000-entry cap with the same fail-closed rule. Tests in all four languages.
+
 ## 0.2.1
 
 - **Security: replay window closed (ECO-02).** The verifier accepts a token until `exp + 10` s (clock skew), but the replay cache forgot its `jti` at the raw `exp`, so the same token could be replayed in those last 10 seconds. Every verifier now hands the replay cache `exp + 10` (the same skew constant the expiry check uses): TypeScript (`ReplayCache.add(jti, exp + SKEW, now)`), Python, PHP and Go. A custom cache (Redis `SET NX EX`) that derives its TTL from the `exp` argument is covered without changes. New tests in each language: a replay at `exp + 5` s is refused. `docs/token-v3.md` step 17 says `exp + 10`. `@busymate/identity-check` has no code change; the version moves with the release.

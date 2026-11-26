@@ -22,7 +22,7 @@ Source of truth: the `bmai-identity` 2.0.0 identity contract. This page restates
 | 16 | `tool` equals the called tool (only when you pass it) | `tool_mismatch` |
 | 17 | `jti` not seen before until `exp + 10` (as long as step 10 can still pass). Recorded only after steps 1-16 pass | `replay` |
 
-Other reasons: `jwks_unavailable` (the JWKS could not be fetched), `confirmation_required` (`requireConfirmed`).
+Other reasons: `jwks_unavailable` (the JWKS could not be fetched), `replay_cache_capacity` (the in-memory replay cache is full of live entries; it fails closed instead of evicting one), `confirmation_required` (`requireConfirmed`).
 
 Claims returned: `sub` (map users by `(idp, sub)`), `idp`, `confirmed` (`true` only when the customer confirmed this call), `tool`, `jti`, `support_session_id` (logging only).
 

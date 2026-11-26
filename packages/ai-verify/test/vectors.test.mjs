@@ -55,6 +55,20 @@ test("replay: a jti stays remembered until exp + skew (replay at exp+5s is refus
   assert.deepEqual(seen, [exp + 10]);
 });
 
+test("replay cache fails closed when full: replay_cache_capacity, never evicts a live jti", async () => {
+  const a = V.cases.find((x) => x.name === "valid_x_header").calls[0].headers;
+  const b = V.cases.find((x) => x.name === "valid_confirmed").calls[0].headers;
+  const cache = new MemoryReplayCache(1);
+  await verifyBusymateActor(a, { ...optionsFor({}), replayCache: cache });
+  await assert.rejects(verifyBusymateActor(b, { ...optionsFor({}), replayCache: cache }), (e) => e instanceof BusymateActorError && e.reason === "replay_cache_capacity");
+  await assert.rejects(verifyBusymateActor(a, { ...optionsFor({}), replayCache: cache }), (e) => e.reason === "replay");
+  // Expired entries are still evicted.
+  const c = new MemoryReplayCache(1);
+  assert.equal(c.add("x", 100, 50), true);
+  assert.throws(() => c.add("y", 200, 60), (e) => e.reason === "replay_cache_capacity");
+  assert.equal(c.add("y", 200, 150), true);
+});
+
 test("requireConfirmed", () => {
   requireConfirmed({ sub: "a", idp: "i", confirmed: true, tool: "t", jti: "j" });
   requireConfirmed({ sub: "a", idp: "i", confirmed: false, tool: "t", jti: "j" }, false);

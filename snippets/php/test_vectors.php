@@ -45,6 +45,21 @@ try {
 echo ($err === null ? "ok   " : "FAIL ") . "replay_at_exp_plus_5" . ($err ? " ($err)" : '') . "\n";
 if ($err !== null) $fail++;
 
+// Capacity: a full store of live entries refuses a new jti (replay_cache_capacity), never evicts one.
+$n++;
+$hdr = function (string $name) use ($V) { foreach ($V['cases'] as $c) if ($c['name'] === $name) return $c['calls'][0]['headers']; };
+$seen = []; $err = null; $got = [];
+foreach (['valid_x_header', 'valid_confirmed', 'valid_x_header'] as $name) {
+    $o = ['audience' => $V['config']['audience'], 'tenant_id' => $V['config']['tenant_id'], 'connector_id' => $V['config']['connector_id'],
+          'jwks' => $V['jwks'], 'now' => $V['now'], 'max_seen' => 1];
+    $o['seen'] = &$seen;
+    try { BusymateVerify::verify($hdr($name), $o); $got[] = 'ok'; } catch (BusymateActorError $x) { $got[] = $x->reason; }
+    unset($o);
+}
+if ($got !== ['ok', 'replay_cache_capacity', 'replay']) $err = 'got ' . implode(',', $got);
+echo ($err === null ? "ok   " : "FAIL ") . "replay_cache_capacity" . ($err ? " ($err)" : '') . "\n";
+if ($err !== null) $fail++;
+
 try { BusymateVerify::requireConfirmed(['confirmed' => false]); $fail++; echo "FAIL requireConfirmed\n"; } catch (BusymateActorError $x) { if ($x->reason !== 'confirmation_required') $fail++; }
 echo "$n cases, $fail failed\n";
 exit($fail ? 1 : 0);
